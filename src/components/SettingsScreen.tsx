@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, Info } from 'lucide-react';
+import {
+  Bug,
+  ChevronRight,
+  Code2,
+  ExternalLink,
+  Info,
+  Scale,
+  Tag,
+} from 'lucide-react';
 import {
   ASK_CONTEXT_KEYS,
   collectAskContext,
@@ -11,6 +19,7 @@ import {
   canNotify,
   requestNotificationPermission,
 } from '../core/notifications/local';
+import { PROJECT } from '../core/project';
 import { CleanDataPanel } from './CleanDataPanel';
 import { StyledCheckbox } from './ui/StyledCheckbox';
 import type { AppState } from '../hooks/useAppState';
@@ -20,6 +29,7 @@ import {
   type Locale,
   type ThemeMode,
 } from '../core/types';
+import { APP_VERSION } from '../version';
 
 export function SettingsScreen({ state }: { state: AppState }) {
   const {
@@ -311,9 +321,94 @@ export function SettingsScreen({ state }: { state: AppState }) {
       </div>
 
       <section className="card span-2">
+        <h2 className="section-title">{t('settings.aboutProject')}</h2>
+        <p className="muted settings-oss-version">
+          {t('settings.version', { v: APP_VERSION })}
+          {' · '}
+          {t('about.licenseShort')}
+        </p>
+        <p className="muted" style={{ fontSize: '0.88rem', marginTop: 4 }}>
+          {t('settings.ossHint')}
+        </p>
+        <ul className="settings-oss-list">
+          <li>
+            <a
+              href={PROJECT.repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="settings-oss-row"
+            >
+              <span className="about-link-left">
+                <Code2 size={18} />
+                <span>
+                  <strong>{t('settings.ossSource')}</strong>
+                  <span className="muted about-link-sub">{PROJECT.repoLabel}</span>
+                </span>
+              </span>
+              <ExternalLink size={16} className="muted" aria-hidden />
+            </a>
+          </li>
+          <li>
+            <a
+              href={PROJECT.licenseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="settings-oss-row"
+            >
+              <span className="about-link-left">
+                <Scale size={18} />
+                <span>
+                  <strong>{t('settings.ossLicense')}</strong>
+                  <span className="muted about-link-sub">
+                    {t('settings.ossLicenseHint')}
+                  </span>
+                </span>
+              </span>
+              <ExternalLink size={16} className="muted" aria-hidden />
+            </a>
+          </li>
+          <li>
+            <a
+              href={PROJECT.issuesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="settings-oss-row"
+            >
+              <span className="about-link-left">
+                <Bug size={18} />
+                <span>
+                  <strong>{t('settings.ossIssues')}</strong>
+                  <span className="muted about-link-sub">
+                    {t('settings.ossIssuesHint')}
+                  </span>
+                </span>
+              </span>
+              <ExternalLink size={16} className="muted" aria-hidden />
+            </a>
+          </li>
+          <li>
+            <a
+              href={PROJECT.releasesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="settings-oss-row"
+            >
+              <span className="about-link-left">
+                <Tag size={18} />
+                <span>
+                  <strong>{t('settings.ossReleases')}</strong>
+                  <span className="muted about-link-sub">
+                    {t('settings.ossReleasesHint')}
+                  </span>
+                </span>
+              </span>
+              <ExternalLink size={16} className="muted" aria-hidden />
+            </a>
+          </li>
+        </ul>
         <button
           type="button"
-          className="about-link-row"
+          className="about-link-row settings-about-more"
           onClick={() => setTab('about')}
         >
           <span className="about-link-left">

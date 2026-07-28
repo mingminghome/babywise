@@ -3267,23 +3267,45 @@ p {
   color: var(--primary, #c47a84);
 }
 
-.about-repo-line {
-  margin: 0.55rem 0 0;
-  font-size: 0.88rem;
+.about-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.about-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 700;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
 }
 
-.about-repo-line a {
+.about-chip-mit {
+  border-color: var(--primary-border);
+  background: var(--primary-soft);
   color: var(--primary-deep, #c47a84);
-  text-decoration: none;
 }
 
-.about-repo-line a:hover {
-  text-decoration: underline;
+.about-copyright {
+  margin: 0.55rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.about-license-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .about-repo-url {
-  margin: 0.65rem 0 0;
+  margin: 0.75rem 0 0;
   font-size: 0.9rem;
   font-weight: 700;
   word-break: break-all;
@@ -3296,6 +3318,80 @@ p {
 
 .about-repo-url a:hover {
   text-decoration: underline;
+}
+
+.about-oss-links {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.about-oss-links li {
+  border-bottom: 1px solid var(--border);
+}
+
+.about-oss-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.1rem;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.about-oss-link:hover {
+  color: var(--primary-deep, #c47a84);
+}
+
+.about-oss-link-left {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.settings-oss-version {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.settings-oss-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.settings-oss-list li {
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-oss-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 0.05rem;
+  min-height: 52px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.settings-oss-row:hover strong {
+  color: var(--primary-deep, #c47a84);
+}
+
+.settings-about-more {
+  margin-top: 0.15rem;
+  border-top: none;
+  padding-top: 0.85rem;
 }
 
 .about-legal-links {
