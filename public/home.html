@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BabyWise — Local-first pregnancy companion</title>
+    <meta
+      name="description"
+      content="BabyWise is a local-first pregnancy companion: week tracking, medicine and appointment calendar, and free-tier Gemini Ask answers. Personal data stays on your device. Not medical advice."
+    />
+    <meta
+      name="robots"
+      content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
+    />
+    <meta name="application-name" content="BabyWise" />
+    <meta name="author" content="BabyWise" />
+    <link rel="canonical" href="https://babywise.pages.dev/home.html" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/logo-120.png" sizes="120x120" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="BabyWise" />
+    <meta property="og:title" content="BabyWise — Local-first pregnancy companion" />
+    <meta
+      property="og:description"
+      content="Week tracking, calendar, and pregnancy-safety Ask. Data stays on your device."
+    />
+    <meta property="og:url" content="https://babywise.pages.dev/home.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_Hant" />
+    <meta property="og:image" content="https://babywise.pages.dev/logo-120.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="120" />
+    <meta property="og:image:height" content="120" />
+    <meta property="og:image:alt" content="BabyWise logo" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="BabyWise — Local-first pregnancy companion" />
+    <meta
+      name="twitter:description"
+      content="Week tracking, calendar, and pregnancy-safety Ask. Data stays on your device."
+    />
+    <meta name="twitter:image" content="https://babywise.pages.dev/logo-120.png" />
+    <meta name="twitter:image:alt" content="BabyWise logo" />
+
+    <!--
+      Google Search Console ownership: paste meta tag here if verifying this URL, e.g.
+      <meta name="google-site-verification" content="YOUR_CODE" />
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "BabyWise",
+        "alternateName": "BabyWise pregnancy companion",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web",
+        "url": "https://babywise.pages.dev/",
+        "description": "BabyWise is a local-first pregnancy companion for week tracking, medicine and appointment calendar, and free-tier Gemini Ask. Personal health data stays on the user device. Not medical advice.",
+        "inLanguage": ["en", "zh-Hant"],
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Pregnancy week and trimester tracking",
+          "Medicine and appointment calendar",
+          "Local-first privacy (data stays on device)",
+          "Optional free-tier Gemini Ask for pregnancy-safety questions"
+        ],
+        "privacyPolicy": "https://babywise.pages.dev/privacy.html",
+        "termsOfService": "https://babywise.pages.dev/terms.html"
+      }
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #faf6f1;
+        --card: #ffffff;
+        --ink: #3d2f33;
+        --muted: #7a656b;
+        --rose: #c47a84;
+        --border: #f0e4dc;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Noto Sans TC',
+          'PingFang TC',
+          sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.65;
+      }
+      .wrap {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 2.25rem 1.25rem 3rem;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 1.25rem;
+      }
+      .brand img {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(232, 160, 168, 0.35);
+      }
+      h1 {
+        font-size: 1.85rem;
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      .tag {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin: 0.15rem 0 0;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.2rem 1.35rem;
+        margin: 1rem 0;
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin: 0 0 0.45rem;
+      }
+      p,
+      li {
+        font-size: 0.95rem;
+        margin: 0.4rem 0;
+      }
+      ul {
+        margin: 0.35rem 0 0;
+        padding-left: 1.2rem;
+      }
+      a {
+        color: var(--rose);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .cta {
+        display: inline-block;
+        margin-top: 0.75rem;
+        padding: 0.7rem 1.15rem;
+        background: linear-gradient(135deg, #e8a0a8, #c47a84);
+        color: #fff !important;
+        border-radius: 999px;
+        font-weight: 700;
+        text-decoration: none !important;
+        box-shadow: 0 4px 14px rgba(196, 122, 132, 0.35);
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+      .zh {
+        border-top: 1px solid var(--border);
+        margin-top: 0.75rem;
+        padding-top: 0.85rem;
+      }
+      footer {
+        margin-top: 1.5rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      footer a {
+        margin-right: 0.65rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="brand">
+        <img src="/logo-120.png" width="56" height="56" alt="BabyWise logo" />
+        <div>
+          <h1>BabyWise</h1>
+          <p class="tag">Local-first pregnancy companion</p>
+        </div>
+      </header>
+
+      <section class="card" id="application-purpose">
+        <h2>Application purpose</h2>
+        <p>
+          The purpose of the <strong>BabyWise</strong> application is to help
+          pregnant people and their partners track pregnancy progress and manage
+          day-to-day pregnancy care logistics on their own device.
+        </p>
+        <p><strong>BabyWise</strong> provides:</p>
+        <ul>
+          <li>
+            Pregnancy week and day tracking from last menstrual period or due
+            date
+          </li>
+          <li>A calendar for medicines, appointments, and personal notes</li>
+          <li>Simple reading logs and optional local reminders on this device</li>
+          <li>
+            An in-app <strong>Ask</strong> feature for pregnancy-safety style
+            information (not medical advice)
+          </li>
+        </ul>
+        <p>
+          BabyWise is <strong>local-first</strong>: profile, calendar, and
+          medicine logs stay in the browser on the user’s device. We do not
+          operate a cloud database of personal pregnancy journals.
+        </p>
+        <p class="muted">
+          Not medical advice. Always confirm with a qualified clinician.
+        </p>
+        <a class="cta" href="/">Open BabyWise app</a>
+      </section>
+
+      <section class="card">
+        <h2>What is BabyWise?</h2>
+        <p>
+          <strong>BabyWise</strong> is a free web application for people who are
+          pregnant or supporting a pregnancy. The product name displayed to
+          users is exactly <strong>BabyWise</strong>.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>How Ask works</h2>
+        <p>
+          Ask sends your question to our Worker, which calls free-tier Gemini
+          with a server API key. You do not sign in with Google and you do not
+          paste an API key. Calendar and medicine data stay on your device.
+        </p>
+        <p>
+          See the
+          <a href="/privacy.html">Privacy Policy</a> and
+          <a href="/terms.html">Terms of Service</a>.
+        </p>
+      </section>
+
+      <section class="card zh">
+        <h2>BabyWise 是什麼？（繁體中文）</h2>
+        <p>
+          <strong>BabyWise</strong> 是免費的<strong>本機優先孕期小幫手</strong>網頁應用：週數追蹤、用藥與產檢日曆、簡易數值與本機提醒，以及「詢問」（免費
+          Gemini 孕期安全相關說明，非醫療建議）。
+        </p>
+        <p>
+          個人檔案、日曆與用藥紀錄預設只存在你的瀏覽器。詢問由伺服器呼叫
+          Gemini，不會把你的孕期日記建成伺服器端病歷。詳見
+          <a href="/privacy.html">隱私權政策</a>與
+          <a href="/terms.html">服務條款</a>。
+        </p>
+        <p class="muted">非醫療建議。請向合格醫療人員確認。</p>
+        <a class="cta" href="/">開啟 BabyWise</a>
+      </section>
+
+      <footer>
+        <a href="/">App</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/home.html">Home</a>
+      </footer>
+    </div>
+  </body>
+</html>

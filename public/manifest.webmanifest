@@ -1,0 +1,18 @@
+{
+  "name": "BabyWise",
+  "short_name": "BabyWise",
+  "description": "Local-first pregnancy companion: week tracker, calendar, and safety Ask.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf6f1",
+  "theme_color": "#e8a0a8",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

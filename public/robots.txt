@@ -1,0 +1,5 @@
+# https://babywise.pages.dev
+User-agent: *
+Allow: /
+
+Sitemap: https://babywise.pages.dev/sitemap.xml
