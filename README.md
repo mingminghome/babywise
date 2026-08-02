@@ -4,7 +4,7 @@
 
 Local-first pregnancy companion: week tracker, medicine & appointment calendar, photo label **Ask**, and calendar **share/copy**.
 
-**Live:** [babywise.pages.dev](https://babywise.pages.dev)  
+**Live demo:** [https://babywise.pages.dev](https://babywise.pages.dev)  
 **License:** [MIT](./LICENSE) · **Security:** [SECURITY.md](./SECURITY.md)
 
 **Production path:** static SPA on **Cloudflare Pages** + stateless **Pages Function** AI proxy (`/api/ask`).  
@@ -14,6 +14,25 @@ User diary data (profile, calendar, Ask history) stays in the browser — **neve
 Browser  →  Pages (SPA)  →  localStorage
          →  POST /api/ask  →  Gemini / OpenAI / Grok / Claude (server keys)
 ```
+
+---
+
+## Live demo
+
+**Try it:** [https://babywise.pages.dev](https://babywise.pages.dev)
+
+Useful for:
+
+| Area | What you get |
+|------|----------------|
+| **Week tracker** | LMP or due date → week · day · trimester |
+| **Calendar** | Medicines & appointments by date and/or **baby week** |
+| **Share / copy** | Multi-select day items → OS share or clipboard |
+| **Ask** | Text and/or photo of a label → ingredient-style breakdown (AI proxy) |
+| **Readings** | Weight, blood pressure, and other notes |
+| **Privacy** | No account; diary stays on-device |
+
+AI answers can be wrong — always confirm with a clinician. Details: [SECURITY.md](./SECURITY.md) · [privacy.html](./public/privacy.html).
 
 ---
 
@@ -51,29 +70,7 @@ npm run pages:dev             # full SPA + /api/ask (recommended)
 | `npm run build` | Typecheck + production `dist/` |
 | `npm run lint` | Oxlint |
 
----
-
-## Deploy (GitHub → Cloudflare Pages)
-
-| Field | Value |
-|-------|--------|
-| Build command | `npm run build` |
-| Output directory | `dist` |
-| Node | `20` |
-
-Functions under `functions/` deploy with the site.
-
-**GitHub Actions secrets** (for `.github/workflows/deploy-cloudflare-pages.yml`):
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-
-**Cloudflare Pages secrets** (Ask):
-
-- `GEMINI_API_KEY` and/or `OPENAI_API_KEY` / `XAI_API_KEY` / `ANTHROPIC_API_KEY`
-- Optional: `ASK_DEFAULT_PROVIDER`, `ASK_ALLOWED_ORIGINS`, model overrides
-
-See [docs/DEPLOY.md](./docs/DEPLOY.md) and [docs/GEMINI.md](./docs/GEMINI.md).
+For self-hosting (Cloudflare Pages, env keys, CI), see [docs/DEPLOY.md](./docs/DEPLOY.md) and [docs/GEMINI.md](./docs/GEMINI.md).
 
 ---
 
