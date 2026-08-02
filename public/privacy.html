@@ -205,10 +205,10 @@
           calendar or pregnancy notes.
         </p>
         <p>
-          We use Google Tag Manager (container ID GTM-WFQ3VHZM) for product
-          analytics such as anonymous page views and feature usage. Tags are
-          designed to measure the product, not your due date, medicine names,
-          calendar contents, or Ask questions.
+          We may use Google Tag Manager when a container ID is configured for
+          the deployment (build env <code>VITE_GTM_ID</code>). If unset, no GTM
+          script is loaded. Tags are designed to measure the product, not your
+          due date, medicine names, calendar contents, or Ask questions.
         </p>
       </section>
 
@@ -280,7 +280,7 @@
           IP、網址、瀏覽器字串）以供安全與營運。這與儲存你的日曆或孕期備註不同。
         </p>
         <p>
-          我們使用 Google Tag Manager（容器 ID：GTM-WFQ3VHZM）了解產品使用情況（例如匿名瀏覽量、功能使用）。標籤設計以產品為主，不會把預產期、藥名、日曆內容或詢問文字送進分析。
+          部署若設定建置環境變數 <code>VITE_GTM_ID</code>，才會載入 Google Tag Manager；未設定則不載入。標籤設計以產品為主，不會把預產期、藥名、日曆內容或詢問文字送進分析。
         </p>
       </section>
 

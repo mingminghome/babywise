@@ -37,11 +37,14 @@ Put secrets only in:
 **Not** in the GitHub repo, PRs, screenshots, or Issues.  
 If a key was ever committed or shared, **rotate it** before opening the repo publicly.
 
-| Secret | Where |
-|--------|--------|
-| `GEMINI_API_KEY` | Cloudflare Pages secret (**required for Ask**) |
+| Variable / secret | Where |
+|-------------------|--------|
+| `VITE_GTM_ID` | Cloudflare Pages **Build** env (optional GTM/GA; empty = off). Local: `.env` |
+| `GEMINI_API_KEY` | Cloudflare Pages secret (**required for Ask**) — not a `VITE_*` var |
 | `CLOUDFLARE_API_TOKEN` | **GitHub** Actions secrets (deploy only) |
 | `CLOUDFLARE_ACCOUNT_ID` | **GitHub** Actions secrets (deploy only) |
+
+GTM is **not hardcoded**. Set e.g. `VITE_GTM_ID=GTM-XXXXXXX` so the SPA injects the container at runtime (`src/core/analytics/gtm.ts`).
 
 ---
 
