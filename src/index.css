@@ -172,6 +172,8 @@ p {
   gap: 1rem;
   overflow-x: hidden;
   overflow-y: auto;
+  /* Reserve scrollbar width so short ↔ tall screens don't shift content */
+  scrollbar-gutter: stable;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
@@ -193,6 +195,10 @@ p {
       0 4px 8px rgba(90, 60, 70, 0.04),
       0 24px 64px rgba(90, 60, 70, 0.12);
     padding-bottom: calc(var(--nav-h) + 12px);
+  }
+
+  .app-header-bar {
+    border-radius: 28px 28px 0 0;
   }
 
   .bottom-nav {
@@ -233,7 +239,7 @@ p {
     --shell-max: 960px;
     display: grid;
     grid-template-columns: 200px 1fr;
-    grid-template-rows: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     height: calc(100dvh - 2.5rem);
     max-height: calc(100dvh - 2.5rem);
   }
@@ -241,7 +247,7 @@ p {
   .app-shell .bottom-nav {
     position: relative;
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 1 / -1;
     width: auto;
     height: auto;
     min-height: 100%;
@@ -270,9 +276,16 @@ p {
     background: var(--primary-soft);
   }
 
-  .app-main {
+  .app-header-bar {
     grid-column: 2;
     grid-row: 1;
+    padding: 0.65rem 1.5rem 0.55rem;
+    border-radius: 0 28px 0 0;
+  }
+
+  .app-main {
+    grid-column: 2;
+    grid-row: 2;
     min-height: 0;
     min-width: 0;
     padding: 1.35rem 1.5rem 1.75rem;
@@ -300,18 +313,73 @@ p {
   }
 }
 
-.app-header {
+/* Shared shell top bar — logo + top-right icons (same on every tab) */
+.app-header-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.25rem 0 0.5rem;
+  padding: 0.55rem 1.1rem 0.45rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  z-index: 5;
 }
 
-.app-header h1 {
+.app-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 10px;
+  padding: 0.1rem 0.15rem 0.1rem 0;
+}
+
+.app-logo:focus-visible {
+  outline: 2px solid var(--primary-border);
+  outline-offset: 2px;
+}
+
+.app-logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(232, 160, 168, 0.28);
+}
+
+.app-logo-name {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--primary-deep);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme='dark'] .app-logo-name {
+  color: var(--primary);
+}
+
+/* In-content page title (Ask / Settings / About) — not shell chrome */
+.page-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.1rem 0 0.15rem;
+}
+
+.page-heading h1 {
   font-size: 1.35rem;
 }
 
+.page-heading .subtitle,
 .app-header .subtitle {
   color: var(--text-muted);
   font-size: 0.88rem;
@@ -476,7 +544,8 @@ p {
   height: calc(var(--nav-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* 3 primary tabs (About/Settings are top icons) — equal width, full bar */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   background: color-mix(in srgb, var(--bg-card) 92%, transparent);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
@@ -489,10 +558,13 @@ p {
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
+  width: 100%;
+  min-width: 0;
   color: var(--text-muted);
   font-size: 0.7rem;
   font-weight: 600;
   min-height: var(--nav-h);
+  text-align: center;
 }
 
 .bottom-nav button.active {
@@ -3254,17 +3326,6 @@ p {
 
 .about-list li {
   margin-bottom: 0.4rem;
-}
-
-/* Compact product name (OAuth brand check + UI) — not a long purpose blurb */
-.home-brand {
-  margin: 0 0 0.15rem;
-  font-family: var(--font-heading);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: none;
-  color: var(--primary, #c47a84);
 }
 
 .about-meta-row {

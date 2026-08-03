@@ -13,7 +13,6 @@ import { PROJECT } from '../core/project';
 import { isBuyMeAPintEnabled } from '../core/support/buyMeAPint';
 import { APP_VERSION } from '../version';
 import { BuyMeAPint } from './BuyMeAPint';
-import { TopNavIcons } from './TopNavIcons';
 
 type OssLink = {
   href: string;
@@ -23,7 +22,7 @@ type OssLink = {
 
 /** Top-level About screen (no intermediate Info hub). */
 export function AboutScreen({ state }: { state: AppState }) {
-  const { t, setTab, tab } = state;
+  const { t } = state;
   const showPint = isBuyMeAPintEnabled();
 
   const ossLinks: OssLink[] = [
@@ -40,12 +39,9 @@ export function AboutScreen({ state }: { state: AppState }) {
 
   return (
     <div className="layout-grid">
-      <header className="app-header span-2">
-        <div>
-          <h1>{t('about.title')}</h1>
-          <p className="subtitle">{t('about.tagline')}</p>
-        </div>
-        <TopNavIcons tab={tab} onChange={setTab} t={t} />
+      <header className="page-heading span-2">
+        <h1>{t('about.title')}</h1>
+        <p className="subtitle">{t('about.tagline')}</p>
       </header>
 
       <section className="card span-2">

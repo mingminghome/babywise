@@ -19,7 +19,6 @@ import {
 import { CleanDataPanel } from './CleanDataPanel';
 import { DataBackupPanel } from './DataBackupPanel';
 import { StyledCheckbox } from './ui/StyledCheckbox';
-import { TopNavIcons } from './TopNavIcons';
 import type { AppState } from '../hooks/useAppState';
 import {
   AI_PROVIDERS,
@@ -40,7 +39,6 @@ export function SettingsScreen({ state }: { state: AppState }) {
     exportBackup,
     importBackup,
     setTab,
-    tab,
     profile,
     events,
   } = state;
@@ -119,12 +117,9 @@ export function SettingsScreen({ state }: { state: AppState }) {
 
   return (
     <div className="layout-grid">
-      <header className="app-header span-2">
-        <div>
-          <h1>{t('settings.title')}</h1>
-          <p className="subtitle">{t('settings.subtitle')}</p>
-        </div>
-        <TopNavIcons tab={tab} onChange={setTab} t={t} />
+      <header className="page-heading span-2">
+        <h1>{t('settings.title')}</h1>
+        <p className="subtitle">{t('settings.subtitle')}</p>
       </header>
 
       <section className="card">

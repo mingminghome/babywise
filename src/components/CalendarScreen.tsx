@@ -36,7 +36,6 @@ import {
   INDICATORS,
 } from '../core/indicators/catalog';
 import { todayIso, addDays } from '../core/pregnancy/engine';
-import { TopNavIcons } from './TopNavIcons';
 import type { AppState } from '../hooks/useAppState';
 import type {
   CalendarEvent,
@@ -82,8 +81,6 @@ export function CalendarScreen({ state }: { state: AppState }) {
     profile,
     settings,
     t,
-    tab,
-    setTab,
   } = state;
   const [view, setView] = useState<CalendarViewMode>('month');
   const [anchor, setAnchor] = useState(todayIso());
@@ -427,13 +424,6 @@ export function CalendarScreen({ state }: { state: AppState }) {
 
   return (
     <>
-      <header className="app-header">
-        <div>
-          <h1>{t('calendar.title')}</h1>
-        </div>
-        <TopNavIcons tab={tab} onChange={setTab} t={t} />
-      </header>
-
       <div className="cal-chrome">
         <div
           className="cal-view-bar"

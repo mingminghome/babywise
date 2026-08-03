@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AppHeader } from './components/AppHeader';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/HomeScreen';
 import { CalendarScreen } from './components/CalendarScreen';
@@ -128,6 +129,7 @@ export default function App() {
   return (
     <div className="app-page">
       <div className="app-shell">
+        <AppHeader tab={tab} onChange={setTab} t={t} />
         <main className="app-main">
           {tab === 'home' && <HomeScreen state={state} />}
           {tab === 'calendar' && <CalendarScreen state={state} />}

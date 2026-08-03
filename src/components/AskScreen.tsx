@@ -8,7 +8,6 @@ import { engineRunAsk } from '../core/ai/engine';
 import type { RateLimitMeta } from '../core/ai/types';
 import { prepareAskImage, type PreparedImage } from '../core/util/image';
 import { SafetyBadge } from './SafetyBadge';
-import { TopNavIcons } from './TopNavIcons';
 import type { AppState } from '../hooks/useAppState';
 import type { AiProviderId, SafetyItem, SafetyResult } from '../core/types';
 
@@ -198,8 +197,6 @@ export function AskScreen({ state }: { state: AppState }) {
     profile,
     events,
     t,
-    tab,
-    setTab,
     askHistory,
     pushAskHistory,
     removeAskHistory,
@@ -358,12 +355,9 @@ export function AskScreen({ state }: { state: AppState }) {
 
   return (
     <>
-      <header className="app-header">
-        <div>
-          <h1>{t('ask.title')}</h1>
-          <p className="subtitle">{t('ask.simpleHint')}</p>
-        </div>
-        <TopNavIcons tab={tab} onChange={setTab} t={t} />
+      <header className="page-heading">
+        <h1>{t('ask.title')}</h1>
+        <p className="subtitle">{t('ask.simpleHint')}</p>
       </header>
 
       <section className="card stack ask-composer">
