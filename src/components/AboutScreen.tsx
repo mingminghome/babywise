@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Bug,
   Code2,
   ExternalLink,
@@ -11,10 +10,10 @@ import {
 } from 'lucide-react';
 import type { AppState } from '../hooks/useAppState';
 import { PROJECT } from '../core/project';
+import { isBuyMeAPintEnabled } from '../core/support/buyMeAPint';
 import { APP_VERSION } from '../version';
-
-const SUPPORT_IMG =
-  'https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20pint&emoji=%F0%9F%8D%BA&slug=mingminghomework&button_colour=5F7FFF&font_colour=ffffff&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00';
+import { BuyMeAPint } from './BuyMeAPint';
+import { TopNavIcons } from './TopNavIcons';
 
 type OssLink = {
   href: string;
@@ -22,8 +21,10 @@ type OssLink = {
   Icon: typeof Code2;
 };
 
+/** Top-level About screen (no intermediate Info hub). */
 export function AboutScreen({ state }: { state: AppState }) {
-  const { t, setTab } = state;
+  const { t, setTab, tab } = state;
+  const showPint = isBuyMeAPintEnabled();
 
   const ossLinks: OssLink[] = [
     { href: PROJECT.repoUrl, label: t('about.linkSource'), Icon: Code2 },
@@ -40,23 +41,13 @@ export function AboutScreen({ state }: { state: AppState }) {
   return (
     <div className="layout-grid">
       <header className="app-header span-2">
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
-          <button
-            type="button"
-            className="about-back"
-            aria-label={t('about.back')}
-            onClick={() => setTab('settings')}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <h1>{t('about.title')}</h1>
-            <p className="subtitle">{t('about.tagline')}</p>
-          </div>
+        <div>
+          <h1>{t('about.title')}</h1>
+          <p className="subtitle">{t('about.tagline')}</p>
         </div>
+        <TopNavIcons tab={tab} onChange={setTab} t={t} />
       </header>
 
-      {/* Product hero */}
       <section className="card span-2">
         <div className="about-hero">
           <div className="about-hero-icon" aria-hidden>
@@ -75,7 +66,6 @@ export function AboutScreen({ state }: { state: AppState }) {
         </div>
       </section>
 
-      {/* MIT / open source — standard OSS block */}
       <section className="card span-2">
         <h2 className="section-title">
           <Scale size={16} style={{ verticalAlign: -2, marginRight: 6 }} />
@@ -177,22 +167,12 @@ export function AboutScreen({ state }: { state: AppState }) {
         <p className="muted" style={{ marginTop: 6, fontSize: '0.82rem' }}>
           {t('about.contributionsWelcome')}
         </p>
-        <p className="about-credits-pint">
-          <a
-            href={PROJECT.supportUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t('about.buyMeAPint')}
-            style={{ display: 'inline-block', lineHeight: 0 }}
-          >
-            <img
-              src={SUPPORT_IMG}
-              alt={t('about.buyMeAPint')}
-              height={40}
-              style={{ height: 40, width: 'auto', border: 0 }}
-            />
-          </a>
-        </p>
+        {showPint ? (
+          <div className="about-pint">
+            <p className="muted about-pint-label">{t('support.thanks')}</p>
+            <BuyMeAPint t={t} />
+          </div>
+        ) : null}
       </section>
     </div>
   );

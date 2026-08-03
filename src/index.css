@@ -3480,6 +3480,195 @@ p {
   margin: 1rem 0 0;
 }
 
+/* Top-right icon nav + Buy me a pint (OriginWise-style web chrome) */
+.top-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.top-nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+.buy-pint-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 34px;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 122, 132, 0.45);
+  background: rgba(196, 122, 132, 0.12);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1;
+}
+.buy-pint-chip:hover {
+  background: rgba(196, 122, 132, 0.2);
+  border-color: rgba(196, 122, 132, 0.65);
+}
+[data-theme='warm-dark'] .buy-pint-chip,
+[data-theme='dark'] .buy-pint-chip {
+  background: rgba(196, 122, 132, 0.18);
+  border-color: rgba(232, 170, 178, 0.45);
+  color: #ffe8eb;
+}
+.buy-pint-chip-text {
+  display: none;
+}
+@media (min-width: 380px) {
+  .buy-pint-chip-text {
+    display: inline;
+  }
+}
+.buy-pint-full {
+  display: inline-block;
+  line-height: 0;
+}
+.buy-pint-full img {
+  display: block;
+  height: 40px;
+  width: auto;
+  max-width: 100%;
+}
+.buy-pint-full-text {
+  margin-top: 0.35rem;
+}
+.about-pint {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+.about-pint-label {
+  margin: 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.top-nav-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.top-nav-icon:hover,
+.top-nav-icon.is-active {
+  background: var(--bg-subtle);
+  color: var(--text);
+}
+
+.settings-version {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Export / import backup */
+.backup-panel .backup-hint {
+  font-size: 0.85rem;
+  margin: 0 0 0.85rem;
+}
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.backup-actions .btn {
+  flex: 1 1 auto;
+  min-width: 8.5rem;
+  justify-content: center;
+}
+.backup-confirm {
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+.notif-status {
+  line-height: 1.4;
+}
+.notif-ios-tip {
+  line-height: 1.45;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--primary-border, rgba(196, 122, 132, 0.35));
+  background: var(--primary-soft, rgba(196, 122, 132, 0.12));
+}
+
+/* Ask free-server rate limit (OriginWise-style) */
+.ask-free-note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.rate-limit-banner {
+  margin-top: 0.35rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(180, 120, 20, 0.4);
+  background: rgba(217, 160, 32, 0.12);
+  text-align: left;
+}
+[data-theme='warm-dark'] .rate-limit-banner,
+[data-theme='dark'] .rate-limit-banner {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+}
+.rate-limit-banner-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  margin-bottom: 0.4rem;
+}
+.rate-limit-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+[data-theme='warm-dark'] .rate-limit-badge,
+[data-theme='dark'] .rate-limit-badge {
+  background: rgba(255, 255, 255, 0.1);
+}
+.rate-limit-title {
+  font-size: 0.92rem;
+  color: var(--text);
+}
+.rate-limit-detail {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+.rate-limit-policy {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
 /* ── Install as app banner ───────────────────────────────── */
 .install-app-banner {
   display: flex;

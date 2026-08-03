@@ -7,6 +7,14 @@ import {
 } from '../core/calendar/store';
 import { createT, localeTag } from '../core/i18n';
 import { getGestationalAge, normalizeProfile } from '../core/pregnancy/engine';
+import {
+  applyBackup,
+  buildBackup,
+  parseBackup,
+  type BabywiseBackup,
+  type BackupImportMode,
+  type BackupImportResult,
+} from '../core/storage/backup';
 import { loadDemoData } from '../core/storage/demoData';
 import {
   clearLocalData,
@@ -140,6 +148,31 @@ export function useAppState() {
     return result;
   }, []);
 
+  /** Reload all local stores into React state (after import). */
+  const reloadFromStorage = useCallback(() => {
+    setProfile(getProfile());
+    setSettings(getSettings());
+    setEvents(listEvents());
+    setAskHistory(getAskHistory());
+    setTick((n) => n + 1);
+  }, []);
+
+  const exportBackup = useCallback((): BabywiseBackup => buildBackup(), []);
+
+  const importBackup = useCallback(
+    (
+      raw: unknown,
+      mode: BackupImportMode = 'replace'
+    ): BackupImportResult => {
+      const backup = parseBackup(raw);
+      if (!backup) return { ok: false, reason: 'parse' };
+      const result = applyBackup(backup, mode);
+      if (result.ok) reloadFromStorage();
+      return result;
+    },
+    [reloadFromStorage]
+  );
+
   const dataSummary = useMemo(() => summarizeLocalData(), [profile, events, askHistory, settings, tick]);
 
   return {
@@ -158,6 +191,9 @@ export function useAppState() {
     removeAskHistory,
     cleanData,
     loadSampleData,
+    exportBackup,
+    importBackup,
+    reloadFromStorage,
     dataSummary,
     t,
     ga,

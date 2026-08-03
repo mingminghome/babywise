@@ -10,7 +10,14 @@ export const en: MessageTree = {
     home: 'Home',
     calendar: 'Calendar',
     ask: 'Ask',
+    about: 'About',
     settings: 'Settings',
+    navMore: 'Menu',
+  },
+  support: {
+    buyMeAPint: 'Buy me a pint',
+    pintShort: 'Pint',
+    thanks: 'If BabyWise helps you, you can buy me a pint:',
   },
   home: {
     title: 'Your pregnancy',
@@ -213,8 +220,16 @@ export const en: MessageTree = {
     providerNotConfigured:
       '{name} is not set up on the server yet. Pick another provider in Settings, or try again later.',
     rateLimited:
-      'Too many Ask requests from this network. Please wait a bit and try again.',
-    rateLimitedDay: 'Daily Ask limit reached. Please try again tomorrow.',
+      'Free server limit: wait a bit, then try again.',
+    rateLimitedDay: 'Free server daily limit reached. Please try again later.',
+    rateLimitBadge: 'Free server limit',
+    rateLimitFreeNote: 'Free server · 8 asks / min · max 40 / day',
+    rateLimitRpmTitle: 'Free server rate limit (1 min)',
+    rateLimitedLongTitle: 'Free server daily limit',
+    rateLimitShortDetail:
+      'Free server limit: {n} ask(s) every {w}s. Wait about {s}s, then try again.',
+    rateLimitLongDetail:
+      'Free server limit: {n} asks per day. Try again in about {m} minutes.',
     forbiddenOrigin: 'This request is not allowed.',
     badRequest: 'Please enter a valid question or photo (keep it short).',
     parseError: 'Could not understand the answer. Please try again.',
@@ -250,6 +265,7 @@ export const en: MessageTree = {
   },
   settings: {
     title: 'Settings',
+    subtitle: 'Preferences & data on this device',
     language: 'Language',
     theme: 'Theme',
     themes: {
@@ -290,7 +306,47 @@ export const en: MessageTree = {
     },
     notifications: 'Notifications',
     enableNotifications: 'Enable local reminders',
-    notificationHint: 'Uses the browser only. No push server. iOS may limit background alerts.',
+    notificationHint:
+      'Local only — no push server. Best reliability: install BabyWise to your home screen and keep reminders with a clock time + “Remind me”. Timers reschedule when you reopen the app.',
+    notifStatusChecking: 'Checking permission…',
+    notifStatusGranted: 'Permission: allowed',
+    notifStatusDenied:
+      'Permission: blocked — enable notifications for this site in browser settings',
+    notifStatusDefault: 'Permission: not asked yet',
+    notifUnsupported: 'Notifications are not supported in this browser',
+    notifSwReady: 'background helper ready',
+    notifSwPending: 'background helper starting…',
+    notifIosInstallTip:
+      'On iPhone/iPad: Share → Add to Home Screen, open BabyWise from the icon, then allow notifications. Alerts in a normal Safari tab often never appear.',
+    notifTest: 'Send test notification',
+    notifTestBody: 'If you see this, local reminders can show on this device.',
+    notifTestSent: 'Test notification sent. Check your notification tray.',
+    notifTestFailed:
+      'Could not show a test notification. Check permission, or install to Home Screen on iOS.',
+    notifPermissionDenied:
+      'Notification permission was not granted. You can enable it in browser site settings.',
+    backupTitle: 'Export & import',
+    backupHint:
+      'Save a JSON backup of your pregnancy diary on this device (profile, calendar, settings, Ask history). Share or copy the file to another phone, then import. Day Share/Copy is still for a single day of calendar text.',
+    backupExport: 'Download backup',
+    backupShare: 'Share backup',
+    backupImport: 'Import backup',
+    backupImportMode: 'When importing',
+    backupModeReplace: 'Replace all',
+    backupModeMerge: 'Merge calendar',
+    backupModeReplaceHint:
+      'Overwrites profile, calendar, settings, and Ask history with the file.',
+    backupModeMergeHint:
+      'Keeps your profile/settings. Adds or updates calendar items and Ask history from the file.',
+    backupExportDone: 'Backup downloaded.',
+    backupShareDone: 'Share sheet opened.',
+    backupExportFailed: 'Could not export backup. Try again.',
+    backupImportConfirm:
+      'Import “{name}” ({mode})? This changes data stored only in this browser.',
+    backupImportConfirmBtn: 'Import now',
+    backupImportDone: 'Imported ({mode}) · {n} calendar items in file.',
+    backupImportInvalid: 'That file is not a valid BabyWise backup.',
+    backupImportEmpty: 'Backup file has no data to import.',
     askContextTitle: 'Include in Ask questions',
     askContextHint:
       'Optional. Only checked items are added to the Ask prompt. Manage this here so Ask stays simple.',
@@ -347,7 +403,6 @@ export const en: MessageTree = {
   },
   about: {
     title: 'About',
-    back: 'Back to settings',
     tagline: 'A simple pregnancy helper for your phone',
     intro:
       'BabyWise helps you track pregnancy weeks, log meds and notes, photograph labels, share calendar items, and ask if something is safe — with your personal diary staying on this device.',
@@ -397,7 +452,9 @@ export const en: MessageTree = {
     securityLink: 'Security notes',
     createdBy: 'Maintained by',
     contributionsWelcome: 'Issues and pull requests are welcome on GitHub.',
-    buyMeAPint: 'Buy me a pint',
+  },
+  notify: {
+    reminderBody: 'Scheduled for {time}',
   },
   welcome: {
     title: 'Before you start',

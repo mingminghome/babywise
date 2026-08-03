@@ -18,6 +18,14 @@ export type AskRequest = {
   image?: AskImagePayload;
 };
 
+/** Free-server rate limit fields returned with 429 responses. */
+export type RateLimitMeta = {
+  limit?: number;
+  window?: 'short' | 'long' | 'minute' | 'day' | string;
+  windowSec?: number;
+  retryAfterSec?: number;
+};
+
 export type AskResponse =
   | { ok: true; result: SafetyResult; provider?: AiProviderId }
-  | { ok: false; error: string; code?: string };
+  | { ok: false; error: string; code?: string; rateLimit?: RateLimitMeta };

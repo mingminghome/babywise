@@ -441,10 +441,11 @@ const PUBLIC_ERROR: Record<AskErrorCode, string> = {
 function fail(
   code: AskErrorCode,
   status: number,
-  extraHeaders?: Record<string, string>
+  extraHeaders?: Record<string, string>,
+  extraBody?: Record<string, unknown>
 ): Response {
   return json(
-    { ok: false, error: PUBLIC_ERROR[code], code },
+    { ok: false, error: PUBLIC_ERROR[code], code, ...extraBody },
     status,
     extraHeaders
   );
@@ -477,9 +478,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       namespace: 'ask-min',
     });
     if (!minute.ok) {
-      return fail('rate_limited', 429, {
-        'Retry-After': String(minute.retryAfterSec),
-      });
+      return fail(
+        'rate_limited',
+        429,
+        { 'Retry-After': String(minute.retryAfterSec) },
+        {
+          limit: RATE_PER_MINUTE,
+          window: 'short',
+          windowSec: 60,
+          retryAfterSec: minute.retryAfterSec,
+        }
+      );
     }
 
     const day = await checkRateLimit({
@@ -489,9 +498,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       namespace: 'ask-day',
     });
     if (!day.ok) {
-      return fail('rate_limited_day', 429, {
-        'Retry-After': String(day.retryAfterSec),
-      });
+      return fail(
+        'rate_limited_day',
+        429,
+        { 'Retry-After': String(day.retryAfterSec) },
+        {
+          limit: RATE_PER_DAY,
+          window: 'long',
+          windowSec: 86_400,
+          retryAfterSec: day.retryAfterSec,
+        }
+      );
     }
 
     let body: AskBody;

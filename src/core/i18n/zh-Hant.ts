@@ -7,7 +7,14 @@ export const zhHant = {
     home: '首頁',
     calendar: '日曆',
     ask: '詢問',
+    about: '關於',
     settings: '設定',
+    navMore: '選單',
+  },
+  support: {
+    buyMeAPint: '請我喝一杯',
+    pintShort: '請杯',
+    thanks: '若 BabyWise 對你有幫助，歡迎請我喝一杯：',
   },
   home: {
     title: '我的孕期',
@@ -205,8 +212,16 @@ export const zhHant = {
     geminiNotConfigured: '詢問暫時無法使用，請稍後再試。',
     providerNotConfigured:
       '伺服器尚未設定 {name}。請在設定改選其他 AI，或稍後再試。',
-    rateLimited: '此網路詢問次數過多，請稍後再試。',
-    rateLimitedDay: '今日詢問次數已達上限，請明天再試。',
+    rateLimited: '免費伺服器上限：請稍候再試。',
+    rateLimitedDay: '免費伺服器今日上限已滿，請稍後再試。',
+    rateLimitBadge: '免費伺服器上限',
+    rateLimitFreeNote: '免費伺服器 · 每分鐘 8 次 · 每日最多 40 次',
+    rateLimitRpmTitle: '免費伺服器速率上限（1 分鐘）',
+    rateLimitedLongTitle: '免費伺服器每日上限',
+    rateLimitShortDetail:
+      '免費伺服器上限：每 {w} 秒 {n} 次。約再等 {s} 秒後可再試。',
+    rateLimitLongDetail:
+      '免費伺服器上限：每日 {n} 次。約 {m} 分鐘後再試。',
     forbiddenOrigin: '不允許此來源的請求。',
     badRequest: '請輸入有效問題或照片（請精簡文字）。',
     parseError: '無法解析回答，請再試一次。',
@@ -241,6 +256,7 @@ export const zhHant = {
   },
   settings: {
     title: '設定',
+    subtitle: '偏好與本機資料',
     language: '語言',
     theme: '主題',
     themes: {
@@ -281,7 +297,42 @@ export const zhHant = {
     },
     notifications: '通知',
     enableNotifications: '啟用本機提醒',
-    notificationHint: '僅使用瀏覽器，無推播伺服器。iOS 可能限制背景提醒。',
+    notificationHint:
+      '僅本機提醒，無推播伺服器。建議把 BabyWise 加到主畫面，並為事項設定時間與「提醒我」。重新開啟 App 時會重新排程。',
+    notifStatusChecking: '正在檢查權限…',
+    notifStatusGranted: '權限：已允許',
+    notifStatusDenied: '權限：已封鎖 — 請在瀏覽器網站設定中開啟通知',
+    notifStatusDefault: '權限：尚未詢問',
+    notifUnsupported: '此瀏覽器不支援通知',
+    notifSwReady: '背景元件就緒',
+    notifSwPending: '背景元件啟動中…',
+    notifIosInstallTip:
+      'iPhone／iPad：用分享 → 加入主畫面，從圖示開啟 BabyWise 後再允許通知。在一般 Safari 分頁通常不會顯示。',
+    notifTest: '傳送測試通知',
+    notifTestBody: '若看到此則，表示本裝置可顯示本機提醒。',
+    notifTestSent: '已傳送測試通知，請查看通知中心。',
+    notifTestFailed:
+      '無法顯示測試通知。請檢查權限；iOS 請先加到主畫面。',
+    notifPermissionDenied: '未取得通知權限。可在瀏覽器網站設定中開啟。',
+    backupTitle: '匯出與匯入',
+    backupHint:
+      '把本機孕期資料（檔案、日曆、設定、詢問紀錄）存成 JSON 備份。可分享到其他手機後再匯入。日曆的「分享／複製」仍是單日文字。',
+    backupExport: '下載備份',
+    backupShare: '分享備份',
+    backupImport: '匯入備份',
+    backupImportMode: '匯入時',
+    backupModeReplace: '全部取代',
+    backupModeMerge: '合併日曆',
+    backupModeReplaceHint: '用檔案覆寫檔案、日曆、設定與詢問紀錄。',
+    backupModeMergeHint: '保留你的檔案／設定，並加入或更新檔案中的日曆與詢問紀錄。',
+    backupExportDone: '已下載備份。',
+    backupShareDone: '已開啟分享選單。',
+    backupExportFailed: '無法匯出，請再試一次。',
+    backupImportConfirm: '要以「{mode}」匯入「{name}」嗎？只會改此瀏覽器的資料。',
+    backupImportConfirmBtn: '立即匯入',
+    backupImportDone: '已匯入（{mode}）· 檔案含 {n} 筆日曆項目。',
+    backupImportInvalid: '不是有效的 BabyWise 備份檔。',
+    backupImportEmpty: '備份檔沒有可匯入的資料。',
     askContextTitle: '一併放入詢問',
     askContextHint: '可選。只有勾選的項目會加入詢問提示。在此管理，讓詢問頁更單純。',
     askContextEmpty:
@@ -336,7 +387,6 @@ export const zhHant = {
   },
   about: {
     title: '關於',
-    back: '返回設定',
     tagline: '簡單好用的孕期小幫手',
     intro:
       'BabyWise 幫你追蹤孕期週數、記錄用藥與備註、拍攝標籤、分享日曆項目，並詢問是否安全——個人日記會留在這部裝置上。',
@@ -380,7 +430,9 @@ export const zhHant = {
     securityLink: '安全說明',
     createdBy: '維護者',
     contributionsWelcome: '歡迎在 GitHub 提出 Issue 或 Pull Request。',
-    buyMeAPint: '請我喝杯酒',
+  },
+  notify: {
+    reminderBody: '預定時間 {time}',
   },
   welcome: {
     title: '開始使用前',

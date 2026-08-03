@@ -18,7 +18,9 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "pages:dev": "npm run build && npx --yes wrangler pages dev dist --compatibility-date=2024-09-23"
+    "pages:dev": "npm run build && npx --yes wrangler pages dev dist --compatibility-date=2024-09-23",
+    "deploy": "npm run build && npx --yes wrangler pages deploy dist --project-name=babywise",
+    "deploy:preview": "npm run build && npx --yes wrangler pages deploy dist --project-name=babywise --branch=preview"
   },
   "dependencies": {
     "lucide-react": "^1.25.0",

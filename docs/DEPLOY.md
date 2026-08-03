@@ -40,11 +40,14 @@ If a key was ever committed or shared, **rotate it** before opening the repo pub
 | Variable / secret | Where |
 |-------------------|--------|
 | `VITE_GTM_ID` | Cloudflare Pages **Build** env (optional GTM/GA; empty = off). Local: `.env` |
+| `VITE_BUY_ME_A_PINT_URL` | Cloudflare Pages **Build** env (optional support link; empty = hide “Buy me a pint”). Local: `.env` |
+| `VITE_BUY_ME_A_PINT_IMG` | Optional custom button image; BMC profile URLs get a default image |
 | `GEMINI_API_KEY` | Cloudflare Pages secret (**required for Ask**) — not a `VITE_*` var |
 | `CLOUDFLARE_API_TOKEN` | **GitHub** Actions secrets (deploy only) |
 | `CLOUDFLARE_ACCOUNT_ID` | **GitHub** Actions secrets (deploy only) |
 
-GTM is **not hardcoded**. Set e.g. `VITE_GTM_ID=GTM-XXXXXXX` so the SPA injects the container at runtime (`src/core/analytics/gtm.ts`).
+GTM is **not hardcoded**. Set e.g. `VITE_GTM_ID=GTM-XXXXXXX` so the SPA injects the container at runtime (`src/core/analytics/gtm.ts`).  
+Support link is also build-time only (`VITE_BUY_ME_A_PINT_URL`).
 
 ---
 
@@ -113,11 +116,34 @@ First deploy creates project **`babywise`** → `https://babywise.pages.dev`
 ## 4. Manual deploy (local)
 
 ```bash
-npm run build
-npx wrangler pages deploy dist --project-name=babywise
+npm run deploy
+# equivalent:
+# npm run build && npx wrangler pages deploy dist --project-name=babywise
 ```
 
 Requires `npx wrangler login` once.
+
+Build output includes:
+
+| Path | Notes |
+|------|--------|
+| `dist/` SPA assets | Vite build |
+| `dist/sw.js` | Service worker for local notifications (from `public/sw.js`) |
+| `functions/api/ask` | Pages Function (Ask AI proxy) |
+
+### Client build env (local deploy)
+
+Baked into the SPA at `npm run build` from `.env` / Cloudflare **Build** env:
+
+| Variable | Notes |
+|----------|--------|
+| `VITE_GTM_ID` | Optional GTM |
+| `VITE_BUY_ME_A_PINT_URL` | Optional support link; empty hides UI |
+| `VITE_BUY_ME_A_PINT_IMG` | Optional custom button image |
+
+### Free-server Ask rate limits (client labels)
+
+`/api/ask` applies per-IP short + day windows (defaults in `functions/api/ask.ts`). The SPA shows a free-server rate-limit note and a banner on 429 with `limit` / `window` / `retryAfterSec` from the response body.
 
 ---
 

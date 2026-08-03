@@ -1,13 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Bug,
-  ChevronRight,
-  Code2,
-  ExternalLink,
-  Info,
-  Scale,
-  Tag,
-} from 'lucide-react';
+import { Bell } from 'lucide-react';
 import {
   ASK_CONTEXT_KEYS,
   collectAskContext,
@@ -17,11 +9,17 @@ import {
 import { fetchAskProviders } from '../core/ai/client';
 import {
   canNotify,
+  getNotificationCapability,
+  isIosDevice,
+  isStandaloneApp,
   requestNotificationPermission,
+  sendTestNotification,
+  type NotificationCapability,
 } from '../core/notifications/local';
-import { PROJECT } from '../core/project';
 import { CleanDataPanel } from './CleanDataPanel';
+import { DataBackupPanel } from './DataBackupPanel';
 import { StyledCheckbox } from './ui/StyledCheckbox';
+import { TopNavIcons } from './TopNavIcons';
 import type { AppState } from '../hooks/useAppState';
 import {
   AI_PROVIDERS,
@@ -39,12 +37,17 @@ export function SettingsScreen({ state }: { state: AppState }) {
     cleanData,
     loadSampleData,
     dataSummary,
+    exportBackup,
+    importBackup,
     setTab,
+    tab,
     profile,
     events,
   } = state;
   const [sampleConfirm, setSampleConfirm] = useState(false);
   const [sampleMsg, setSampleMsg] = useState<string | null>(null);
+  const [notifCap, setNotifCap] = useState<NotificationCapability | null>(null);
+  const [testMsg, setTestMsg] = useState<string | null>(null);
   /** null = still loading / unknown; set of configured provider ids once loaded */
   const [availableProviders, setAvailableProviders] = useState<
     Set<AiProviderId> | null
@@ -104,12 +107,24 @@ export function SettingsScreen({ state }: { state: AppState }) {
     };
   }, [updateSettings]);
 
+  const refreshNotifCap = async () => {
+    const cap = await getNotificationCapability();
+    setNotifCap(cap);
+    return cap;
+  };
+
+  useEffect(() => {
+    void refreshNotifCap();
+  }, [settings.notificationsEnabled]);
+
   return (
     <div className="layout-grid">
       <header className="app-header span-2">
         <div>
           <h1>{t('settings.title')}</h1>
+          <p className="subtitle">{t('settings.subtitle')}</p>
         </div>
+        <TopNavIcons tab={tab} onChange={setTab} t={t} />
       </header>
 
       <section className="card">
@@ -201,7 +216,10 @@ export function SettingsScreen({ state }: { state: AppState }) {
       </section>
 
       <section className="card span-2">
-        <h2 className="section-title">{t('settings.notifications')}</h2>
+        <h2 className="section-title">
+          <Bell size={16} style={{ verticalAlign: -2, marginRight: 6 }} />
+          {t('settings.notifications')}
+        </h2>
         <StyledCheckbox
           id="notify-enable"
           checked={settings.notificationsEnabled}
@@ -210,14 +228,75 @@ export function SettingsScreen({ state }: { state: AppState }) {
             if (enabled) {
               const perm = await requestNotificationPermission();
               patch({ notificationsEnabled: perm === 'granted' });
+              await refreshNotifCap();
+              if (perm !== 'granted') {
+                setTestMsg(t('settings.notifPermissionDenied'));
+                window.setTimeout(() => setTestMsg(null), 4000);
+              }
             } else {
               patch({ notificationsEnabled: false });
+              await refreshNotifCap();
             }
           }}
         />
         <p className="muted" style={{ fontSize: '0.85rem' }}>
           {t('settings.notificationHint')}
         </p>
+        <p className="muted notif-status" style={{ fontSize: '0.82rem', marginTop: 6 }}>
+          {notifCap
+            ? !notifCap.supported
+              ? t('settings.notifUnsupported')
+              : notifCap.permission === 'granted'
+                ? t('settings.notifStatusGranted')
+                : notifCap.permission === 'denied'
+                  ? t('settings.notifStatusDenied')
+                  : t('settings.notifStatusDefault')
+            : t('settings.notifStatusChecking')}
+          {notifCap?.serviceWorkerReady
+            ? ` · ${t('settings.notifSwReady')}`
+            : notifCap
+              ? ` · ${t('settings.notifSwPending')}`
+              : ''}
+        </p>
+        {isIosDevice() && !isStandaloneApp() ? (
+          <p className="muted notif-ios-tip" style={{ fontSize: '0.82rem', marginTop: 6 }}>
+            {t('settings.notifIosInstallTip')}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          className="btn btn-ghost btn-block"
+          style={{ marginTop: 10 }}
+          onClick={async () => {
+            setTestMsg(null);
+            if (!settings.notificationsEnabled) {
+              const perm = await requestNotificationPermission();
+              if (perm !== 'granted') {
+                setTestMsg(t('settings.notifPermissionDenied'));
+                await refreshNotifCap();
+                return;
+              }
+              patch({ notificationsEnabled: true });
+            }
+            const ok = await sendTestNotification(
+              t('appName'),
+              t('settings.notifTestBody')
+            );
+            await refreshNotifCap();
+            setTestMsg(
+              ok ? t('settings.notifTestSent') : t('settings.notifTestFailed')
+            );
+            window.setTimeout(() => setTestMsg(null), 4000);
+          }}
+        >
+          <Bell size={16} />
+          {t('settings.notifTest')}
+        </button>
+        {testMsg ? (
+          <div className="clean-result" role="status" style={{ marginTop: 10 }}>
+            {testMsg}
+          </div>
+        ) : null}
       </section>
 
       <section className="card span-2">
@@ -309,6 +388,12 @@ export function SettingsScreen({ state }: { state: AppState }) {
         )}
       </section>
 
+      <DataBackupPanel
+        t={t}
+        exportBackup={exportBackup}
+        importBackup={importBackup}
+      />
+
       <div className="span-2">
         <CleanDataPanel
           t={t}
@@ -320,109 +405,9 @@ export function SettingsScreen({ state }: { state: AppState }) {
         />
       </div>
 
-      <section className="card span-2">
-        <h2 className="section-title">{t('settings.aboutProject')}</h2>
-        <p className="muted settings-oss-version">
-          {t('settings.version', { v: APP_VERSION })}
-          {' · '}
-          {t('about.licenseShort')}
-        </p>
-        <p className="muted" style={{ fontSize: '0.88rem', marginTop: 4 }}>
-          {t('settings.ossHint')}
-        </p>
-        <ul className="settings-oss-list">
-          <li>
-            <a
-              href={PROJECT.repoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="settings-oss-row"
-            >
-              <span className="about-link-left">
-                <Code2 size={18} />
-                <span>
-                  <strong>{t('settings.ossSource')}</strong>
-                  <span className="muted about-link-sub">{PROJECT.repoLabel}</span>
-                </span>
-              </span>
-              <ExternalLink size={16} className="muted" aria-hidden />
-            </a>
-          </li>
-          <li>
-            <a
-              href={PROJECT.licenseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="settings-oss-row"
-            >
-              <span className="about-link-left">
-                <Scale size={18} />
-                <span>
-                  <strong>{t('settings.ossLicense')}</strong>
-                  <span className="muted about-link-sub">
-                    {t('settings.ossLicenseHint')}
-                  </span>
-                </span>
-              </span>
-              <ExternalLink size={16} className="muted" aria-hidden />
-            </a>
-          </li>
-          <li>
-            <a
-              href={PROJECT.issuesUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="settings-oss-row"
-            >
-              <span className="about-link-left">
-                <Bug size={18} />
-                <span>
-                  <strong>{t('settings.ossIssues')}</strong>
-                  <span className="muted about-link-sub">
-                    {t('settings.ossIssuesHint')}
-                  </span>
-                </span>
-              </span>
-              <ExternalLink size={16} className="muted" aria-hidden />
-            </a>
-          </li>
-          <li>
-            <a
-              href={PROJECT.releasesUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="settings-oss-row"
-            >
-              <span className="about-link-left">
-                <Tag size={18} />
-                <span>
-                  <strong>{t('settings.ossReleases')}</strong>
-                  <span className="muted about-link-sub">
-                    {t('settings.ossReleasesHint')}
-                  </span>
-                </span>
-              </span>
-              <ExternalLink size={16} className="muted" aria-hidden />
-            </a>
-          </li>
-        </ul>
-        <button
-          type="button"
-          className="about-link-row settings-about-more"
-          onClick={() => setTab('about')}
-        >
-          <span className="about-link-left">
-            <Info size={18} />
-            <span>
-              <strong>{t('settings.about')}</strong>
-              <span className="muted about-link-sub">
-                {t('settings.aboutLinkHint')}
-              </span>
-            </span>
-          </span>
-          <ChevronRight size={18} className="muted" />
-        </button>
-      </section>
+      <p className="muted settings-version span-2">
+        {t('settings.version', { v: APP_VERSION })}
+      </p>
     </div>
   );
 }

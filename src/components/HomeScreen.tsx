@@ -13,6 +13,7 @@ import { chartableSeries } from '../core/indicators/series';
 import { DayAgenda } from './DayAgenda';
 import { InstallAppBanner } from './InstallAppBanner';
 import { ReadingChart } from './ReadingChart';
+import { TopNavIcons } from './TopNavIcons';
 import { StyledDateField } from './ui/StyledDateField';
 import type { AppState } from '../hooks/useAppState';
 import type { ProfileMethod } from '../core/types';
@@ -26,6 +27,7 @@ export function HomeScreen({ state }: { state: AppState }) {
     ga,
     events,
     setTab,
+    tab,
     markComplete,
   } = state;
   const seriesList = useMemo(() => chartableSeries(events), [events]);
@@ -65,6 +67,7 @@ export function HomeScreen({ state }: { state: AppState }) {
           <h1>{t('home.title')}</h1>
           <p className="subtitle">{t('tagline')}</p>
         </div>
+        <TopNavIcons tab={tab} onChange={setTab} t={t} />
       </header>
 
       <InstallAppBanner t={t} />

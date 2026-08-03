@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { installGtm } from './core/analytics/gtm'
+import { ensureNotificationSw } from './core/notifications/local'
 import './index.css'
 import App from './App.tsx'
 
@@ -11,6 +12,9 @@ import App from './App.tsx'
  * normal browser UA.
  */
 installGtm()
+
+// Register SW early so later reminder showNotification works on PWA / mobile
+void ensureNotificationSw()
 
 document.documentElement.classList.add('bw-app-ready')
 

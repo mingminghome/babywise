@@ -1,6 +1,32 @@
 import { extractSafetyResult } from './extract';
-import type { AskRequest, AskResponse } from './types';
+import type { AskRequest, AskResponse, RateLimitMeta } from './types';
 import { AI_PROVIDERS, type AiProviderId } from '../types';
+
+function parseRateLimitMeta(
+  data: Record<string, unknown>,
+  res?: Response
+): RateLimitMeta | undefined {
+  const fromBody =
+    data.limit != null || data.window != null || data.retryAfterSec != null
+      ? {
+          limit: typeof data.limit === 'number' ? data.limit : undefined,
+          window: typeof data.window === 'string' ? data.window : undefined,
+          windowSec:
+            typeof data.windowSec === 'number' ? data.windowSec : undefined,
+          retryAfterSec:
+            typeof data.retryAfterSec === 'number'
+              ? data.retryAfterSec
+              : undefined,
+        }
+      : undefined;
+  if (fromBody) return fromBody;
+  const header = res?.headers.get('Retry-After');
+  if (header) {
+    const n = parseInt(header, 10);
+    if (Number.isFinite(n) && n > 0) return { retryAfterSec: n };
+  }
+  return undefined;
+}
 
 const base =
   (import.meta.env.VITE_ASK_API_BASE as string | undefined)?.replace(/\/$/, '') ||
@@ -73,7 +99,15 @@ export async function askSafety(req: AskRequest): Promise<AskResponse> {
       rawText?: string;
       provider?: AiProviderId;
       result?: AskResponse extends { ok: true; result: infer R } ? R : never;
+      limit?: number;
+      window?: string;
+      windowSec?: number;
+      retryAfterSec?: number;
     };
+    const rateLimit = parseRateLimitMeta(
+      data as unknown as Record<string, unknown>,
+      res
+    );
 
     if (!res.ok) {
       if (data.rawText) {
@@ -89,6 +123,7 @@ export async function askSafety(req: AskRequest): Promise<AskResponse> {
         ok: false,
         error: data.error || `HTTP ${res.status}`,
         code: data.code,
+        rateLimit,
       };
     }
     if ('ok' in data && data.ok === false) {
@@ -105,6 +140,7 @@ export async function askSafety(req: AskRequest): Promise<AskResponse> {
         ok: false,
         error: data.error || 'Ask failed',
         code: data.code,
+        rateLimit,
       };
     }
     if ('result' in data && data.result) {

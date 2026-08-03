@@ -1,14 +1,21 @@
 import { useMemo, useRef, useState } from 'react';
-import { Camera, ImagePlus, Sparkles, X } from 'lucide-react';
+import { Camera, Gauge, ImagePlus, Sparkles, X } from 'lucide-react';
 import {
   collectAskContext,
   mergeContextFlags,
 } from '../core/ai/askContext';
 import { engineRunAsk } from '../core/ai/engine';
+import type { RateLimitMeta } from '../core/ai/types';
 import { prepareAskImage, type PreparedImage } from '../core/util/image';
 import { SafetyBadge } from './SafetyBadge';
+import { TopNavIcons } from './TopNavIcons';
 import type { AppState } from '../hooks/useAppState';
 import type { AiProviderId, SafetyItem, SafetyResult } from '../core/types';
+
+type RateHit = {
+  code: 'rate_limited' | 'rate_limited_day';
+  meta?: RateLimitMeta;
+};
 
 function formatAskWhen(iso: string, locale: string): string {
   const d = new Date(iso);
@@ -191,6 +198,8 @@ export function AskScreen({ state }: { state: AppState }) {
     profile,
     events,
     t,
+    tab,
+    setTab,
     askHistory,
     pushAskHistory,
     removeAskHistory,
@@ -199,6 +208,7 @@ export function AskScreen({ state }: { state: AppState }) {
   const [text, setText] = useState('');
   const [photo, setPhoto] = useState<PreparedImage | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rateHit, setRateHit] = useState<RateHit | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SafetyResult | null>(null);
   const [lastProvider, setLastProvider] = useState<string | null>(null);
@@ -217,9 +227,28 @@ export function AskScreen({ state }: { state: AppState }) {
 
   const flags = mergeContextFlags(settings.ai.contextPrefs);
 
+  const rateLimitMessage = (hit: RateHit): string => {
+    const w = hit.meta?.window;
+    const n = hit.meta?.limit;
+    const s = hit.meta?.retryAfterSec ?? 60;
+    if (hit.code === 'rate_limited_day' || w === 'long' || w === 'day') {
+      const waitMin = Math.max(1, Math.ceil(s / 60));
+      return t('ask.rateLimitLongDetail', {
+        n: n ?? 40,
+        m: waitMin,
+      });
+    }
+    return t('ask.rateLimitShortDetail', {
+      n: n ?? 8,
+      w: hit.meta?.windowSec ?? 60,
+      s,
+    });
+  };
+
   const onPickPhoto = async (file: File | null | undefined) => {
     if (!file) return;
     setError(null);
+    setRateHit(null);
     try {
       const prepared = await prepareAskImage(file);
       setPhoto(prepared);
@@ -241,6 +270,7 @@ export function AskScreen({ state }: { state: AppState }) {
 
   const runAsk = async () => {
     setError(null);
+    setRateHit(null);
     setResult(null);
     setLastProvider(null);
     if (!text.trim() && !photo) {
@@ -263,13 +293,20 @@ export function AskScreen({ state }: { state: AppState }) {
           : undefined,
       });
       if (!out.ok) {
+        if (out.code === 'rate_limited' || out.code === 'rate_limited_day') {
+          const hit: RateHit = {
+            code: out.code,
+            meta: out.rateLimit,
+          };
+          setRateHit(hit);
+          setError(rateLimitMessage(hit));
+          return;
+        }
         const byCode: Record<string, string> = {
           gemini_not_configured: t('ask.geminiNotConfigured'),
           provider_not_configured: t('ask.providerNotConfigured', {
             name: providerLabel,
           }),
-          rate_limited: t('ask.rateLimited'),
-          rate_limited_day: t('ask.rateLimitedDay'),
           forbidden_origin: t('ask.forbiddenOrigin'),
           bad_request: t('ask.badRequest'),
           parse_error: t('ask.parseError'),
@@ -310,6 +347,7 @@ export function AskScreen({ state }: { state: AppState }) {
     setResult(item.result);
     setLastProvider(item.provider ?? null);
     setError(null);
+    setRateHit(null);
     getScrollMain()?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -325,6 +363,7 @@ export function AskScreen({ state }: { state: AppState }) {
           <h1>{t('ask.title')}</h1>
           <p className="subtitle">{t('ask.simpleHint')}</p>
         </div>
+        <TopNavIcons tab={tab} onChange={setTab} t={t} />
       </header>
 
       <section className="card stack ask-composer">
@@ -414,15 +453,36 @@ export function AskScreen({ state }: { state: AppState }) {
             ? t('ask.autoCheckingNamed', { name: providerLabel })
             : t('ask.autoAnswerNamed', { name: providerLabel })}
         </button>
+        <p className="ask-free-note muted">
+          <Gauge size={12} style={{ verticalAlign: -1, marginRight: 4 }} />
+          {t('ask.rateLimitFreeNote')}
+        </p>
         <p className="muted" style={{ fontSize: '0.8rem' }}>
           {photo ? t('ask.photoAutoHint') : t('ask.autoHint')}
         </p>
 
-        {error && (
+        {rateHit ? (
+          <div className="rate-limit-banner" role="alert">
+            <div className="rate-limit-banner-top">
+              <span className="rate-limit-badge">{t('ask.rateLimitBadge')}</span>
+              <strong className="rate-limit-title">
+                {rateHit.code === 'rate_limited_day' ||
+                rateHit.meta?.window === 'long' ||
+                rateHit.meta?.window === 'day'
+                  ? t('ask.rateLimitedLongTitle')
+                  : t('ask.rateLimitRpmTitle')}
+              </strong>
+            </div>
+            <p className="rate-limit-detail">{rateLimitMessage(rateHit)}</p>
+            <p className="rate-limit-policy muted">{t('ask.rateLimitFreeNote')}</p>
+          </div>
+        ) : null}
+
+        {error && !rateHit ? (
           <p className="ask-error" role="alert">
             {error}
           </p>
-        )}
+        ) : null}
       </section>
 
       {result && (

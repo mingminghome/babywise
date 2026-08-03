@@ -9,9 +9,12 @@ import { WelcomeDisclaimer } from './components/WelcomeDisclaimer';
 import { eventsForDate } from './core/calendar/resolve';
 import { todayIso } from './core/pregnancy/engine';
 import {
+  ensureNotificationSw,
   requestNotificationPermission,
   scheduleTodayTimers,
   showLocalNotification,
+  subtractMinutesFromHm,
+  type ReminderItem,
 } from './core/notifications/local';
 import {
   hasDisclaimerAck,
@@ -32,29 +35,78 @@ export default function App() {
     dataSummary,
   } = state;
   const [showWelcome, setShowWelcome] = useState(() => !hasDisclaimerAck());
+  /** Bump when tab becomes visible so timers reschedule after phone sleep. */
+  const [scheduleTick, setScheduleTick] = useState(0);
 
   // Re-show after full clean (disclaimer key wiped with babywise_v1_*)
   useEffect(() => {
     if (!hasDisclaimerAck()) setShowWelcome(true);
   }, [dataSummary.keyCount]);
 
-  // Local same-session reminders — only items with a clock time + notify flag
+  // Register SW early when notifications are enabled
   useEffect(() => {
     if (!settings.notificationsEnabled) return;
+    void ensureNotificationSw();
+  }, [settings.notificationsEnabled]);
+
+  // Reschedule when app returns to foreground
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        setScheduleTick((n) => n + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', onVis);
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('focus', onVis);
+    };
+  }, []);
+
+  // Local same-session reminders — items with clock time + notify flag
+  useEffect(() => {
+    if (!settings.notificationsEnabled) return;
+
     const today = eventsForDate(events, todayIso(), profile);
-    const items: Array<{ id: string; title: string; time: string }> = [];
+    const items: ReminderItem[] = [];
+
     for (const e of today) {
-      if (!e.notifyMinutesBefore?.length) continue;
+      const minsList = e.notifyMinutesBefore?.length
+        ? e.notifyMinutesBefore
+        : [];
+      if (!minsList.length) continue;
       const times = (e.timesOfDay ?? []).map((tm) => tm.trim()).filter(Boolean);
       if (!times.length) continue;
-      for (const time of times) {
-        items.push({ id: e.id, title: e.title, time });
+
+      for (const eventTime of times) {
+        for (const mins of minsList) {
+          const fireTime = subtractMinutesFromHm(eventTime, mins);
+          items.push({
+            id: `${e.id}-${eventTime}-${mins}`,
+            title: e.title,
+            time: fireTime,
+            eventTime,
+          });
+        }
       }
     }
+
     return scheduleTodayTimers(items, (item) => {
-      showLocalNotification(item.title, item.time);
+      const body = item.eventTime
+        ? t('notify.reminderBody', { time: item.eventTime })
+        : item.time;
+      void showLocalNotification(item.title, body, {
+        tag: `babywise-${item.id}`,
+      });
     });
-  }, [settings.notificationsEnabled, events, profile]);
+  }, [
+    settings.notificationsEnabled,
+    events,
+    profile,
+    scheduleTick,
+    t,
+  ]);
 
   const acceptWelcome = async (opts: { notificationsEnabled: boolean }) => {
     // Close UI first so permission prompt never freezes the welcome sheet

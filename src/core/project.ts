@@ -1,5 +1,5 @@
 /**
- * Public project metadata for About / Settings (MIT open-source links).
+ * Public project metadata for About / Info (MIT open-source links).
  */
 export const PROJECT = {
   name: 'BabyWise',
@@ -12,5 +12,5 @@ export const PROJECT = {
   releasesUrl: 'https://github.com/mingminghome/babywise/releases',
   licenseUrl: 'https://github.com/mingminghome/babywise/blob/main/LICENSE',
   securityUrl: 'https://github.com/mingminghome/babywise/blob/main/SECURITY.md',
-  supportUrl: 'https://buymeacoffee.com/mingminghomework',
+  // Support link: VITE_BUY_ME_A_PINT_URL (see src/core/support/buyMeAPint.ts)
 } as const;

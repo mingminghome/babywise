@@ -6,7 +6,7 @@
 import type { AiProviderId, Locale, SafetyResult } from '../types';
 import type { AskContextBundle, AskContextFlags } from './askContext';
 import { askSafety } from './client';
-import type { AskImagePayload } from './types';
+import type { AskImagePayload, RateLimitMeta } from './types';
 import { buildWebAskPrompt } from './webAsk';
 
 export type EngineInput = {
@@ -28,7 +28,13 @@ export type EngineResult =
       provider?: AiProviderId;
       rawText?: string;
     }
-  | { ok: false; error: string; prompt: string; code?: string };
+  | {
+      ok: false;
+      error: string;
+      prompt: string;
+      code?: string;
+      rateLimit?: RateLimitMeta;
+    };
 
 export function engineBuildPrompt(input: EngineInput): string {
   return buildWebAskPrompt({
@@ -76,6 +82,7 @@ export async function engineRunAsk(input: EngineInput): Promise<EngineResult> {
       error: res.error,
       prompt,
       code: res.code,
+      rateLimit: res.rateLimit,
     };
   }
   return {
