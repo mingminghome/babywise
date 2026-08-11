@@ -189,10 +189,14 @@ function asProfile(raw: unknown): PregnancyProfile | null {
 
 function asSettings(raw: unknown): AppSettings | null {
   if (!isObject(raw)) return null;
+  // Route through getSettings merge path via save would re-normalize;
+  // here we only shape the object; getSettings normalizes on next load.
   const base = getDefaultSettings();
+  const partial = raw as Partial<AppSettings>;
   return {
     ...base,
-    ...(raw as Partial<AppSettings>),
+    ...partial,
+    gestationalDisplay: partial.gestationalDisplay ?? base.gestationalDisplay,
     ai: {
       ...base.ai,
       ...(isObject(raw.ai) ? (raw.ai as AppSettings['ai']) : {}),

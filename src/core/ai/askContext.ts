@@ -63,7 +63,8 @@ export function collectAskContext(
   const bundle: AskContextBundle = {};
 
   if (ga && ga.totalDays >= 0) {
-    bundle.week = formatWeekDay(ga.weeks, ga.days, locale);
+    // Ask always uses plain weeks+days so the model sees a clear number pair.
+    bundle.week = formatWeekDay(ga.weeks, ga.days, locale, 'weeks_days');
   }
   if (ga?.dueDate || profile?.dueDate) {
     bundle.dueDate = ga?.dueDate ?? profile?.dueDate;

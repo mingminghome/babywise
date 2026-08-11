@@ -288,6 +288,14 @@ export const en: MessageTree = {
       'warm-dark': 'Warm dark',
       system: 'System',
     },
+    weekDisplay: 'Pregnancy week style',
+    weekDisplayHint:
+      'Same age, different wording. Doctors often write 13+3; apps may use Week 13 · Day 4 (day 1–7 of that week).',
+    weekDisplayStyles: {
+      weeks_days: 'Week 13 + 3 days',
+      clinical: '13+3 (clinical)',
+      week_day: 'Week 13 · Day 4',
+    },
     ai: 'Ask',
     askMode: '',
     modeWeb: '',

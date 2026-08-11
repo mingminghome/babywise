@@ -2,6 +2,21 @@ export type Locale = 'en' | 'zh-Hant';
 
 export type ThemeMode = 'warm-light' | 'warm-dark' | 'system';
 
+/**
+ * How gestational age is shown in the UI.
+ * Math is always completed weeks + day 0–6; only the label style changes.
+ * - weeks_days: “Week 13 + 3 days” (common patient-facing form)
+ * - clinical: “13+3” (chart / ultrasound notation)
+ * - week_day: “Week 13 · Day 4” (1–7 day within the current week)
+ */
+export type GestationalDisplayStyle = 'weeks_days' | 'clinical' | 'week_day';
+
+export const GESTATIONAL_DISPLAY_STYLES: readonly GestationalDisplayStyle[] = [
+  'weeks_days',
+  'clinical',
+  'week_day',
+] as const;
+
 /** Server-backed Ask providers (keys stay on Cloudflare; user only picks which). */
 export type AiProviderId = 'gemini' | 'openai' | 'grok' | 'claude';
 
@@ -132,6 +147,8 @@ export type AiSettings = {
 export type AppSettings = {
   locale: Locale;
   theme: ThemeMode;
+  /** Preferred pregnancy-week label style (default: weeks_days). */
+  gestationalDisplay?: GestationalDisplayStyle;
   ai: AiSettings;
   notificationsEnabled: boolean;
 };

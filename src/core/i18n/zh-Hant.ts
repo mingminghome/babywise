@@ -279,6 +279,14 @@ export const zhHant = {
       'warm-dark': '溫暖深色',
       system: '跟隨系統',
     },
+    weekDisplay: '孕週顯示方式',
+    weekDisplayHint:
+      '同一孕齡，只是寫法不同。診所常寫 13+3；有些 App 用「第 13 週 · 第 4 天」（該週第 1–7 天）。',
+    weekDisplayStyles: {
+      weeks_days: '第 13 週 + 3 天',
+      clinical: '13+3（臨床）',
+      week_day: '第 13 週 · 第 4 天',
+    },
     ai: '詢問',
     askMode: '',
     modeWeb: '',

@@ -166,6 +166,31 @@ export function SettingsScreen({ state }: { state: AppState }) {
       </section>
 
       <section className="card span-2">
+        <h2 className="section-title">{t('settings.weekDisplay')}</h2>
+        <p className="muted" style={{ fontSize: '0.85rem', marginBottom: 10 }}>
+          {t('settings.weekDisplayHint')}
+        </p>
+        <div className="chip-row">
+          {(
+            [
+              'weeks_days',
+              'clinical',
+              'week_day',
+            ] as const
+          ).map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={`chip ${(settings.gestationalDisplay ?? 'weeks_days') === id ? 'active' : ''}`}
+              onClick={() => patch({ gestationalDisplay: id })}
+            >
+              {t(`settings.weekDisplayStyles.${id}`)}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="card span-2">
         <h2 className="section-title">{t('settings.provider')}</h2>
         <p className="muted" style={{ fontSize: '0.85rem', marginBottom: 10 }}>
           {t('settings.providerHint')}

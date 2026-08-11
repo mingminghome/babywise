@@ -1,4 +1,9 @@
-import type { GestationalAge, PregnancyProfile, ProfileMethod } from '../types';
+import type {
+  GestationalAge,
+  GestationalDisplayStyle,
+  PregnancyProfile,
+  ProfileMethod,
+} from '../types';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 /** Standard pregnancy length from LMP: 280 days (40 weeks). */
@@ -274,23 +279,55 @@ export function formatIsoDate(iso: string, locale: string): string {
   }
 }
 
+/** Clamp internal day-within-week to 0–6. */
+function dayInWeek(days: number): number {
+  return ((days % 7) + 7) % 7;
+}
+
 /**
- * Human-facing week/day label — same numbers as clinical {@link formatClinicalAge}.
- * @param days Internal day-within-week 0–6 (not 1–7).
+ * Human-facing gestational age label.
  *
- * Example: weeks=13, days=3 → “Week 13 + 3 days” and clinical “13+3”.
+ * Internal math is always completed weeks + days 0–6 (clinical “W+D”).
+ * {@link GestationalDisplayStyle} only changes wording:
+ * - weeks_days → “Week 13 + 3 days” (matches clinical numbers; common for parents)
+ * - clinical → “13+3” (charts / ultrasound reports)
+ * - week_day → “Week 13 · Day 4” (1–7 day within the week; some consumer apps)
  */
-export function formatWeekDay(weeks: number, days: number, locale: string): string {
-  const d = ((days % 7) + 7) % 7;
-  if (locale.startsWith('zh')) {
+export function formatWeekDay(
+  weeks: number,
+  days: number,
+  locale: string,
+  style: GestationalDisplayStyle = 'weeks_days'
+): string {
+  const d = dayInWeek(days);
+  const zh = locale.startsWith('zh');
+
+  if (style === 'clinical') {
+    return formatClinicalAge(weeks, d);
+  }
+
+  if (style === 'week_day') {
+    // Day 1–7 of the current gestational week (day 0 → Day 1, day 6 → Day 7)
+    const dayNum = d + 1;
+    if (zh) return `第 ${weeks} 週 · 第 ${dayNum} 天`;
+    return `Week ${weeks} · Day ${dayNum}`;
+  }
+
+  // weeks_days (default)
+  if (zh) {
     return d === 0 ? `第 ${weeks} 週` : `第 ${weeks} 週 + ${d} 天`;
   }
   return d === 0 ? `Week ${weeks}` : `Week ${weeks} + ${d} days`;
 }
 
-/** Clinical shorthand “13+3” (completed weeks + days 0–6). Same day count as {@link formatWeekDay}. */
+/** Clinical shorthand “13+3” (completed weeks + days 0–6). */
 export function formatClinicalAge(weeks: number, days: number): string {
-  const d = ((days % 7) + 7) % 7;
-  return `${weeks}+${d}`;
+  return `${weeks}+${dayInWeek(days)}`;
+}
+
+/** Whether to show the clinical “W+D” chip under the main label. */
+export function showClinicalSecondary(style: GestationalDisplayStyle): boolean {
+  // Avoid duplicating “13+3” under itself.
+  return style !== 'clinical';
 }
 

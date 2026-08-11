@@ -5,14 +5,16 @@ import type {
   AskHistoryItem,
   CalendarEvent,
   DataCategory,
+  GestationalDisplayStyle,
   PregnancyProfile,
 } from '../types';
-import { AI_PROVIDERS } from '../types';
+import { AI_PROVIDERS, GESTATIONAL_DISPLAY_STYLES } from '../types';
 import { STORAGE_KEYS, STORAGE_PREFIX } from './keys';
 
 const DEFAULT_SETTINGS: AppSettings = {
   locale: 'en',
   theme: 'warm-light',
+  gestationalDisplay: 'weeks_days',
   ai: {
     provider: 'gemini',
     contextPrefs: { ...DEFAULT_ASK_CONTEXT },
@@ -20,6 +22,14 @@ const DEFAULT_SETTINGS: AppSettings = {
   /** Default on; browser permission still required to show alerts. */
   notificationsEnabled: true,
 };
+
+function normalizeGestationalDisplay(raw: unknown): GestationalDisplayStyle {
+  const s = String(raw ?? '');
+  if ((GESTATIONAL_DISPLAY_STYLES as readonly string[]).includes(s)) {
+    return s as GestationalDisplayStyle;
+  }
+  return 'weeks_days';
+}
 
 function normalizeProvider(raw: unknown): AiProviderId {
   const s = String(raw ?? '').toLowerCase();
@@ -71,6 +81,7 @@ export function getSettings(): AppSettings {
   return {
     ...getDefaultSettings(),
     ...stored,
+    gestationalDisplay: normalizeGestationalDisplay(stored.gestationalDisplay),
     ai: {
       ...getDefaultSettings().ai,
       ...stored.ai,

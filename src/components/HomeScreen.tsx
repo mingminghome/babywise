@@ -15,9 +15,10 @@ import {
   lmpFromDueDate,
   previewGestationalAge,
   progressPercent,
+  showClinicalSecondary,
   todayIso,
 } from '../core/pregnancy/engine';
-import type { GestationalAge } from '../core/types';
+import type { GestationalAge, GestationalDisplayStyle } from '../core/types';
 import { eventsForDate } from '../core/calendar/resolve';
 import { getIndicatorMeta } from '../core/indicators/catalog';
 import { chartableSeries } from '../core/indicators/series';
@@ -49,6 +50,8 @@ export function HomeScreen({ state }: { state: AppState }) {
 
   const todayItems = eventsForDate(events, todayIso(), profile);
   const locale = settings.locale;
+  const displayStyle: GestationalDisplayStyle =
+    settings.gestationalDisplay ?? 'weeks_days';
 
   const draftGa = useMemo(
     () => (editing ? previewGestationalAge(method, dateValue) : null),
@@ -91,7 +94,7 @@ export function HomeScreen({ state }: { state: AppState }) {
   const ageLabel = (g: GestationalAge) =>
     g.totalDays < 0
       ? t('home.notStarted')
-      : formatWeekDay(g.weeks, g.days, locale);
+      : formatWeekDay(g.weeks, g.days, locale, displayStyle);
 
   const hintMessage =
     draftHint === 'lmp_future'
@@ -163,7 +166,7 @@ export function HomeScreen({ state }: { state: AppState }) {
               <div className="setup-preview-label">{t('home.previewTitle')}</div>
               <div className="setup-preview-week">
                 <span className="setup-preview-week-main">{ageLabel(draftGa)}</span>
-                {draftGa.totalDays >= 0 && (
+                {draftGa.totalDays >= 0 && showClinicalSecondary(displayStyle) && (
                   <span className="setup-preview-clinical">
                     {formatClinicalAge(draftGa.weeks, draftGa.days)}
                   </span>
@@ -245,8 +248,13 @@ export function HomeScreen({ state }: { state: AppState }) {
             <div className="hero-week-inner">
               <div className="hero-week-label">{t('home.weekLabel')}</div>
               <div className="week-big">{ageLabel(ga)}</div>
-              {ga.totalDays >= 0 && (
-                <div className="hero-clinical" title={t('home.clinicalAge', { age: formatClinicalAge(ga.weeks, ga.days) })}>
+              {ga.totalDays >= 0 && showClinicalSecondary(displayStyle) && (
+                <div
+                  className="hero-clinical"
+                  title={t('home.clinicalAge', {
+                    age: formatClinicalAge(ga.weeks, ga.days),
+                  })}
+                >
                   {formatClinicalAge(ga.weeks, ga.days)}
                 </div>
               )}
