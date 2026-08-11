@@ -1,6 +1,6 @@
 import { eventsForDate } from '../calendar/resolve';
 import { indicatorSeries } from '../indicators/series';
-import { getGestationalAge } from '../pregnancy/engine';
+import { formatWeekDay, getGestationalAge } from '../pregnancy/engine';
 import { todayIso } from '../pregnancy/engine';
 import type {
   CalendarEvent,
@@ -63,11 +63,7 @@ export function collectAskContext(
   const bundle: AskContextBundle = {};
 
   if (ga && ga.totalDays >= 0) {
-    // Display Day 1–7 (internal ga.days is 0–6)
-    const dayOfWeek = Math.min(7, Math.max(1, ga.days + 1));
-    bundle.week = isZh
-      ? `第 ${ga.weeks} 週 · 第 ${dayOfWeek} 天`
-      : `Week ${ga.weeks}, day ${dayOfWeek}`;
+    bundle.week = formatWeekDay(ga.weeks, ga.days, locale);
   }
   if (ga?.dueDate || profile?.dueDate) {
     bundle.dueDate = ga?.dueDate ?? profile?.dueDate;

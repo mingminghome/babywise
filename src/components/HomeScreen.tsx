@@ -6,7 +6,18 @@ import {
   MessageCircleQuestion,
   Pencil,
 } from 'lucide-react';
-import { formatWeekDay, todayIso, PREGNANCY_DAYS } from '../core/pregnancy/engine';
+import {
+  dateInputHint,
+  dueDateFromLmp,
+  formatClinicalAge,
+  formatIsoDate,
+  formatWeekDay,
+  lmpFromDueDate,
+  previewGestationalAge,
+  progressPercent,
+  todayIso,
+} from '../core/pregnancy/engine';
+import type { GestationalAge } from '../core/types';
 import { eventsForDate } from '../core/calendar/resolve';
 import { getIndicatorMeta } from '../core/indicators/catalog';
 import { chartableSeries } from '../core/indicators/series';
@@ -37,12 +48,34 @@ export function HomeScreen({ state }: { state: AppState }) {
   );
 
   const todayItems = eventsForDate(events, todayIso(), profile);
+  const locale = settings.locale;
+
+  const draftGa = useMemo(
+    () => (editing ? previewGestationalAge(method, dateValue) : null),
+    [editing, method, dateValue]
+  );
+  const draftHint = useMemo(
+    () => (editing ? dateInputHint(method, dateValue) : 'empty'),
+    [editing, method, dateValue]
+  );
+
+  /** Switch LMP ↔ due date without changing the underlying pregnancy. */
+  const selectMethod = (next: ProfileMethod) => {
+    if (next === method) return;
+    if (dateValue) {
+      setDateValue(
+        next === 'due_date' ? dueDateFromLmp(dateValue) : lmpFromDueDate(dateValue)
+      );
+    }
+    setMethod(next);
+  };
 
   const handleSave = () => {
     if (!dateValue) return;
     const now = new Date().toISOString();
     updateProfile({
       method,
+      // Only the field for the chosen method is authoritative; engine derives the other.
       lmpDate: method === 'lmp' ? dateValue : undefined,
       dueDate: method === 'due_date' ? dateValue : undefined,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -52,16 +85,30 @@ export function HomeScreen({ state }: { state: AppState }) {
     setEditing(false);
   };
 
-  const progress =
-    ga && ga.totalDays >= 0
-      ? Math.min(100, Math.max(0, (ga.totalDays / PREGNANCY_DAYS) * 100))
-      : 0;
+  const progress = progressPercent(ga);
+  const showSetup = editing || !profile || !ga;
+
+  const ageLabel = (g: GestationalAge) =>
+    g.totalDays < 0
+      ? t('home.notStarted')
+      : formatWeekDay(g.weeks, g.days, locale);
+
+  const hintMessage =
+    draftHint === 'lmp_future'
+      ? t('home.hintLmpFuture')
+      : draftHint === 'lmp_old'
+        ? t('home.hintLmpOld')
+        : draftHint === 'due_past'
+          ? t('home.hintDuePast')
+          : draftHint === 'due_far'
+            ? t('home.hintDueFar')
+            : null;
 
   return (
     <>
       <InstallAppBanner t={t} />
 
-      {editing || !profile || !ga ? (
+      {showSetup ? (
         <section className="card setup-dates span-2">
           <header className="setup-dates-head">
             <span className="setup-dates-icon" aria-hidden>
@@ -83,7 +130,7 @@ export function HomeScreen({ state }: { state: AppState }) {
               type="button"
               className={`setup-method ${method === 'lmp' ? 'is-active' : ''}`}
               aria-pressed={method === 'lmp'}
-              onClick={() => setMethod('lmp')}
+              onClick={() => selectMethod('lmp')}
             >
               <span className="setup-method-icon" aria-hidden>
                 <CalendarDays size={18} strokeWidth={2.25} />
@@ -94,7 +141,7 @@ export function HomeScreen({ state }: { state: AppState }) {
               type="button"
               className={`setup-method ${method === 'due_date' ? 'is-active' : ''}`}
               aria-pressed={method === 'due_date'}
-              onClick={() => setMethod('due_date')}
+              onClick={() => selectMethod('due_date')}
             >
               <span className="setup-method-icon" aria-hidden>
                 <CalendarHeart size={18} strokeWidth={2.25} />
@@ -110,6 +157,50 @@ export function HomeScreen({ state }: { state: AppState }) {
             value={dateValue}
             onChange={setDateValue}
           />
+
+          {draftGa && (
+            <div className="setup-preview" aria-live="polite">
+              <div className="setup-preview-label">{t('home.previewTitle')}</div>
+              <div className="setup-preview-week">
+                <span className="setup-preview-week-main">{ageLabel(draftGa)}</span>
+                {draftGa.totalDays >= 0 && (
+                  <span className="setup-preview-clinical">
+                    {formatClinicalAge(draftGa.weeks, draftGa.days)}
+                  </span>
+                )}
+              </div>
+              <ul className="setup-preview-meta">
+                <li>
+                  {method === 'lmp'
+                    ? t('home.previewDerivedDue', {
+                        date: formatIsoDate(draftGa.dueDate, locale),
+                      })
+                    : t('home.previewDerivedLmp', {
+                        date: formatIsoDate(draftGa.lmpDate, locale),
+                      })}
+                </li>
+                <li>
+                  {draftGa.daysUntilDue >= 0
+                    ? t('home.daysLeft', { n: draftGa.daysUntilDue })
+                    : t('home.overdue', { n: Math.abs(draftGa.daysUntilDue) })}
+                </li>
+                {draftGa.trimester && (
+                  <li>{t('home.trimesterN', { n: draftGa.trimester })}</li>
+                )}
+              </ul>
+              <p className="setup-preview-hint muted">
+                {method === 'due_date'
+                  ? t('home.previewHintDue')
+                  : t('home.previewHintLmp')}
+              </p>
+            </div>
+          )}
+
+          {hintMessage && (
+            <p className="setup-date-warning" role="status">
+              {hintMessage}
+            </p>
+          )}
 
           <div className="setup-dates-actions">
             <button
@@ -153,16 +244,21 @@ export function HomeScreen({ state }: { state: AppState }) {
             </button>
             <div className="hero-week-inner">
               <div className="hero-week-label">{t('home.weekLabel')}</div>
-              <div className="week-big">
-                {formatWeekDay(ga.weeks, ga.days, settings.locale)}
-              </div>
+              <div className="week-big">{ageLabel(ga)}</div>
+              {ga.totalDays >= 0 && (
+                <div className="hero-clinical" title={t('home.clinicalAge', { age: formatClinicalAge(ga.weeks, ga.days) })}>
+                  {formatClinicalAge(ga.weeks, ga.days)}
+                </div>
+              )}
               {ga.trimester && (
                 <div className="hero-trimester-chip">
                   {t('home.trimesterN', { n: ga.trimester })}
                 </div>
               )}
               <div className="hero-week-meta">
-                <span>{t('home.dueOn', { date: ga.dueDate })}</span>
+                <span>
+                  {t('home.dueOn', { date: formatIsoDate(ga.dueDate, locale) })}
+                </span>
                 <span className="hero-meta-dot" aria-hidden>
                   ·
                 </span>
@@ -172,12 +268,17 @@ export function HomeScreen({ state }: { state: AppState }) {
                     : t('home.overdue', { n: Math.abs(ga.daysUntilDue) })}
                 </span>
               </div>
-              <div className="progress-track" aria-hidden>
+              {ga.totalDays >= 0 && (
                 <div
-                  className="progress-fill"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+                  className="progress-track"
+                  aria-label={`${Math.round(progress)}%`}
+                >
+                  <div
+                    className="progress-fill"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              )}
             </div>
           </section>
 
