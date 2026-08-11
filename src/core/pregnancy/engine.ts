@@ -142,7 +142,7 @@ export function splitWeekDay(totalDays: number): { weeks: number; days: number }
  * So if the due date moves earlier, daysUntilDue falls and totalDays rises
  * (e.g. EDD 13 Feb → 8 Feb adds 5 gestational days; week number may increase).
  *
- * Display uses Day 1–7 via {@link formatWeekDay} so users never see “Day 0”.
+ * Display via {@link formatWeekDay} uses the same 0–6 day count as clinical “W+D”.
  */
 export function getGestationalAge(
   profile: PregnancyProfile | null,
@@ -275,18 +275,20 @@ export function formatIsoDate(iso: string, locale: string): string {
 }
 
 /**
- * Human-facing week/day label.
- * @param days Internal day-within-week 0–6; shown as Day 1–7.
+ * Human-facing week/day label — same numbers as clinical {@link formatClinicalAge}.
+ * @param days Internal day-within-week 0–6 (not 1–7).
+ *
+ * Example: weeks=13, days=3 → “Week 13 + 3 days” and clinical “13+3”.
  */
 export function formatWeekDay(weeks: number, days: number, locale: string): string {
-  const dayOfWeek = Math.min(7, Math.max(1, days + 1));
+  const d = ((days % 7) + 7) % 7;
   if (locale.startsWith('zh')) {
-    return `第 ${weeks} 週 · 第 ${dayOfWeek} 天`;
+    return d === 0 ? `第 ${weeks} 週` : `第 ${weeks} 週 + ${d} 天`;
   }
-  return `Week ${weeks} · Day ${dayOfWeek}`;
+  return d === 0 ? `Week ${weeks}` : `Week ${weeks} + ${d} days`;
 }
 
-/** Clinical shorthand “13+3” (completed weeks + days 0–6). */
+/** Clinical shorthand “13+3” (completed weeks + days 0–6). Same day count as {@link formatWeekDay}. */
 export function formatClinicalAge(weeks: number, days: number): string {
   const d = ((days % 7) + 7) % 7;
   return `${weeks}+${d}`;
