@@ -22,6 +22,7 @@ import type { GestationalAge, GestationalDisplayStyle } from '../core/types';
 import { eventsForDate } from '../core/calendar/resolve';
 import { getIndicatorMeta } from '../core/indicators/catalog';
 import { chartableSeries } from '../core/indicators/series';
+import { BabyFruitMascot } from './BabyFruitMascot';
 import { DayAgenda } from './DayAgenda';
 import { InstallAppBanner } from './InstallAppBanner';
 import { ReadingChart } from './ReadingChart';
@@ -246,18 +247,10 @@ export function HomeScreen({ state }: { state: AppState }) {
               <Pencil size={16} strokeWidth={2.25} />
             </button>
             <div className="hero-week-inner">
-              <div className="hero-week-label">{t('home.weekLabel')}</div>
-              <div className="week-big">{ageLabel(ga)}</div>
-              {ga.totalDays >= 0 && showClinicalSecondary(displayStyle) && (
-                <div
-                  className="hero-clinical"
-                  title={t('home.clinicalAge', {
-                    age: formatClinicalAge(ga.weeks, ga.days),
-                  })}
-                >
-                  {formatClinicalAge(ga.weeks, ga.days)}
-                </div>
+              {ga.totalDays >= 0 && (settings.showMascot ?? true) && (
+                <BabyFruitMascot week={ga.weeks} t={t} />
               )}
+              <div className="week-big">{ageLabel(ga)}</div>
               {ga.trimester && (
                 <div className="hero-trimester-chip">
                   {t('home.trimesterN', { n: ga.trimester })}

@@ -579,13 +579,13 @@ p {
 .hero-week {
   position: relative;
   text-align: center;
-  padding: 1.35rem 1.15rem 1.2rem;
+  padding: 1.55rem 1.3rem 1.4rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--primary-border);
   color: var(--text);
   background: var(--bg-card);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hero-week::before {
@@ -598,7 +598,8 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  padding: 0.15rem 0.4rem 0.2rem;
 }
 
 .hero-week-label {
@@ -643,9 +644,9 @@ p {
 
 .hero-week .week-big {
   font-family: var(--font-heading);
-  font-size: clamp(1.55rem, 5.5vw, 1.95rem);
+  font-size: clamp(1.45rem, 5vw, 1.85rem);
   font-weight: 800;
-  margin: 0.15rem 0 0.1rem;
+  margin: 0.1rem 0 0;
   color: var(--primary-deep);
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -679,8 +680,9 @@ p {
   align-items: center;
   justify-content: center;
   gap: 0.25rem 0.4rem;
-  margin-top: 0.45rem;
-  font-size: 0.88rem;
+  margin-top: 0.05rem;
+  padding: 0 0.25rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: #8a7872;
   line-height: 1.35;
@@ -699,10 +701,10 @@ p {
 .progress-track {
   width: 100%;
   max-width: 280px;
-  height: 10px;
+  height: 8px;
   background: rgba(166, 124, 114, 0.14);
   border-radius: 999px;
-  margin-top: 0.85rem;
+  margin-top: 0.5rem;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(140, 100, 80, 0.06) inset;
 }
@@ -712,6 +714,305 @@ p {
   background: var(--primary-gradient);
   border-radius: 999px;
   transition: width 0.35s ease;
+}
+
+/* Home fruit mascot — inline SVG, CSS-only limb/face motion */
+.baby-fruit {
+  --mascot-size: 160px;
+  margin: 0.15rem 0 0.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.baby-fruit-svg {
+  width: var(--mascot-size);
+  height: var(--mascot-size);
+  display: block;
+  overflow: visible;
+}
+
+.baby-fruit-caption {
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--primary-deep);
+  line-height: 1.3;
+  max-width: 16rem;
+}
+
+
+
+.baby-fruit-shadow,
+.plush-arm,
+.plush-leg,
+.plush-eye,
+.plush-smile,
+.plush-blush,
+.plush-stage,
+.plush-z {
+  transform-box: fill-box;
+}
+
+.baby-fruit-shadow {
+  transform-origin: 50% 50%;
+}
+
+.plush-arm,
+.plush-leg {
+  transform-origin: 50% 0%;
+}
+
+.plush-eye {
+  transform-origin: 50% 50%;
+}
+
+.plush-smile {
+  transform-origin: 50% 0%;
+}
+
+.plush-stage {
+  transform-origin: 50% 100%;
+}
+
+.plush-z {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  transform-origin: 50% 50%;
+}
+
+/* Daytime: happy wave + blink */
+.baby-fruit[data-mood='smile'] .plush-arm-l {
+  animation: plush-arm-l 3.6s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='smile'] .plush-arm-r {
+  animation: plush-arm-r 4s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='smile'] .plush-leg-l {
+  animation: plush-leg-l 3.2s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='smile'] .plush-leg-r {
+  animation: plush-leg-r 3.4s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='smile'] .plush-eye {
+  animation: plush-blink 4.8s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='smile'] .plush-smile {
+  animation: plush-smile 5.2s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='smile'] .plush-blush {
+  animation: plush-blush 4.4s ease-in-out infinite;
+}
+
+/* Morning: in-place walk (legs + opposite arms) */
+.baby-fruit[data-mood='walk'] .plush-leg-l {
+  animation: plush-walk-leg-l 0.7s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='walk'] .plush-leg-r {
+  animation: plush-walk-leg-r 0.7s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='walk'] .plush-arm-l {
+  animation: plush-walk-arm-l 0.7s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='walk'] .plush-arm-r {
+  animation: plush-walk-arm-r 0.7s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='walk'] .plush-eye {
+  animation: plush-blink 5.2s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='walk'] .baby-fruit-shadow {
+  animation: plush-shadow-walk 0.7s ease-in-out infinite;
+}
+
+/* Night: closed eyes, droopy arms, zzz */
+.baby-fruit[data-mood='sleep'] .plush-arm-l {
+  animation: plush-sleep-arm-l 4s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='sleep'] .plush-arm-r {
+  animation: plush-sleep-arm-r 4s ease-in-out infinite;
+}
+
+.baby-fruit[data-mood='sleep'] .plush-z:nth-child(1) {
+  animation: plush-zzz 2.6s ease-out infinite;
+}
+
+.baby-fruit[data-mood='sleep'] .plush-z:nth-child(2) {
+  animation: plush-zzz 2.6s ease-out 0.45s infinite;
+}
+
+.baby-fruit[data-mood='sleep'] .plush-z:nth-child(3) {
+  animation: plush-zzz 2.6s ease-out 0.9s infinite;
+}
+
+@keyframes plush-arm-l {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+@keyframes plush-arm-r {
+  0%,
+  100% {
+    transform: rotate(12deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes plush-leg-l {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes plush-leg-r {
+  0%,
+  100% {
+    transform: rotate(8deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+}
+
+@keyframes plush-blink {
+  0%,
+  41%,
+  49%,
+  100% {
+    transform: scaleY(1);
+  }
+  45% {
+    transform: scaleY(0.12);
+  }
+}
+
+@keyframes plush-smile {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.16);
+  }
+}
+
+@keyframes plush-blush {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes plush-walk-leg-l {
+  0%,
+  100% {
+    transform: rotate(-22deg);
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+}
+
+@keyframes plush-walk-leg-r {
+  0%,
+  100% {
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(-22deg);
+  }
+}
+
+@keyframes plush-walk-arm-l {
+  0%,
+  100% {
+    transform: rotate(16deg);
+  }
+  50% {
+    transform: rotate(-18deg);
+  }
+}
+
+@keyframes plush-walk-arm-r {
+  0%,
+  100% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+@keyframes plush-shadow-walk {
+  0%,
+  100% {
+    transform: scale(1, 1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(0.82, 1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes plush-sleep-arm-l {
+  0%,
+  100% {
+    transform: rotate(28deg);
+  }
+  50% {
+    transform: rotate(34deg);
+  }
+}
+
+@keyframes plush-sleep-arm-r {
+  0%,
+  100% {
+    transform: rotate(-28deg);
+  }
+  50% {
+    transform: rotate(-34deg);
+  }
+}
+
+@keyframes plush-zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 6px);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(8px, -16px);
+  }
 }
 
 

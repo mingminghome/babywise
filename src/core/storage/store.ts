@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   locale: 'en',
   theme: 'warm-light',
   gestationalDisplay: 'weeks_days',
+  showMascot: true,
   ai: {
     provider: 'gemini',
     contextPrefs: { ...DEFAULT_ASK_CONTEXT },
@@ -82,6 +83,7 @@ export function getSettings(): AppSettings {
     ...getDefaultSettings(),
     ...stored,
     gestationalDisplay: normalizeGestationalDisplay(stored.gestationalDisplay),
+    showMascot: stored.showMascot !== false,
     ai: {
       ...getDefaultSettings().ai,
       ...stored.ai,

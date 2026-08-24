@@ -149,6 +149,8 @@ export type AppSettings = {
   theme: ThemeMode;
   /** Preferred pregnancy-week label style (default: weeks_days). */
   gestationalDisplay?: GestationalDisplayStyle;
+  /** Home fruit mascot (default on). */
+  showMascot?: boolean;
   ai: AiSettings;
   notificationsEnabled: boolean;
 };

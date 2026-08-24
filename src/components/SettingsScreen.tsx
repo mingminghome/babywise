@@ -191,6 +191,19 @@ export function SettingsScreen({ state }: { state: AppState }) {
       </section>
 
       <section className="card span-2">
+        <h2 className="section-title">{t('settings.showMascot')}</h2>
+        <p className="muted" style={{ fontSize: '0.85rem', marginBottom: 10 }}>
+          {t('settings.showMascotHint')}
+        </p>
+        <StyledCheckbox
+          id="show-mascot"
+          checked={settings.showMascot !== false}
+          label={t('settings.showMascotLabel')}
+          onChange={(on) => patch({ showMascot: on })}
+        />
+      </section>
+
+      <section className="card span-2">
         <h2 className="section-title">{t('settings.provider')}</h2>
         <p className="muted" style={{ fontSize: '0.85rem', marginBottom: 10 }}>
           {t('settings.providerHint')}

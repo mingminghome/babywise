@@ -197,6 +197,7 @@ function asSettings(raw: unknown): AppSettings | null {
     ...base,
     ...partial,
     gestationalDisplay: partial.gestationalDisplay ?? base.gestationalDisplay,
+    showMascot: partial.showMascot ?? base.showMascot,
     ai: {
       ...base.ai,
       ...(isObject(raw.ai) ? (raw.ai as AppSettings['ai']) : {}),
