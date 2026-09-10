@@ -724,6 +724,17 @@ p {
   flex-direction: column;
   align-items: center;
   gap: 0.28rem;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  position: relative;
+}
+
+.baby-fruit:focus-visible {
+  outline: 2px solid var(--primary-deep);
+  outline-offset: 4px;
+  border-radius: 16px;
 }
 
 .baby-fruit-svg {
@@ -731,6 +742,16 @@ p {
   height: var(--mascot-size);
   display: block;
   overflow: visible;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Fruit grows gently on hover without enlarging the title below */
+.baby-fruit:hover .baby-fruit-svg {
+  transform: scale(1.045);
+}
+
+.baby-fruit:active .baby-fruit-svg {
+  transform: scale(0.96);
 }
 
 .baby-fruit-caption {
@@ -751,6 +772,7 @@ p {
 .plush-smile,
 .plush-blush,
 .plush-stage,
+.plush-anim-wrap,
 .plush-z {
   transform-box: fill-box;
 }
@@ -772,7 +794,8 @@ p {
   transform-origin: 50% 0%;
 }
 
-.plush-stage {
+.plush-stage,
+.plush-anim-wrap {
   transform-origin: 50% 100%;
 }
 
@@ -855,6 +878,82 @@ p {
 
 .baby-fruit[data-mood='sleep'] .plush-z:nth-child(3) {
   animation: plush-zzz 2.6s ease-out 0.9s infinite;
+}
+
+/* Interactive mood & action reactions */
+.baby-fruit[data-reacting='true'] .plush-anim-wrap {
+  animation: fruit-react-bounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.baby-fruit[data-action='sleepy-wiggle'] .plush-anim-wrap,
+.baby-fruit[data-action='wiggle-dance'] .plush-anim-wrap {
+  animation: fruit-react-dance 0.75s ease-in-out;
+}
+
+.baby-fruit[data-action='walk-hop'] .plush-anim-wrap,
+.baby-fruit[data-action='bounce-hop'] .plush-anim-wrap,
+.baby-fruit[data-action='sleepy-peek'] .plush-anim-wrap {
+  animation: fruit-react-hop 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+/* Ground shadow softens during hop without ever shifting horizontally */
+.baby-fruit[data-action='walk-hop'] .baby-fruit-shadow,
+.baby-fruit[data-action='bounce-hop'] .baby-fruit-shadow,
+.baby-fruit[data-action='sleepy-peek'] .baby-fruit-shadow {
+  animation: plush-shadow-hop 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+/* Waving arm animations */
+.baby-fruit[data-reacting] .plush-arm-l {
+  animation: plush-wave-l 0.42s ease-in-out infinite !important;
+}
+
+.baby-fruit[data-reacting] .plush-arm-r {
+  animation: plush-wave-r 0.42s ease-in-out infinite !important;
+}
+
+/* Hands-up cheer for hop actions */
+.baby-fruit[data-action='walk-hop'] .plush-arm-l,
+.baby-fruit[data-action='bounce-hop'] .plush-arm-l {
+  animation: plush-reach-up-l 0.38s ease-in-out infinite alternate !important;
+}
+
+.baby-fruit[data-action='walk-hop'] .plush-arm-r,
+.baby-fruit[data-action='bounce-hop'] .plush-arm-r {
+  animation: plush-reach-up-r 0.38s ease-in-out infinite alternate !important;
+}
+
+/* Speedy march during walk-march */
+.baby-fruit[data-action='walk-march'] .plush-leg-l {
+  animation: plush-walk-leg-l 0.35s ease-in-out infinite !important;
+}
+
+.baby-fruit[data-action='walk-march'] .plush-leg-r {
+  animation: plush-walk-leg-r 0.35s ease-in-out infinite !important;
+}
+
+/* Dance sway for wiggle actions */
+.baby-fruit[data-action='wiggle-dance'] .plush-arm-l,
+.baby-fruit[data-action='sleepy-wiggle'] .plush-arm-l {
+  animation: plush-dance-arm-l 0.5s ease-in-out infinite !important;
+}
+
+.baby-fruit[data-action='wiggle-dance'] .plush-arm-r,
+.baby-fruit[data-action='sleepy-wiggle'] .plush-arm-r {
+  animation: plush-dance-arm-r 0.5s ease-in-out infinite !important;
+}
+
+/* Banana crescent specific arm waves */
+.baby-fruit.shape-curve[data-reacting] .plush-arm-l {
+  animation: plush-wave-curve-l 0.42s ease-in-out infinite !important;
+}
+
+.baby-fruit.shape-curve[data-reacting] .plush-arm-r {
+  animation: plush-wave-curve-r 0.42s ease-in-out infinite !important;
+}
+
+.baby-fruit[data-reacting] .plush-blush {
+  animation: plush-blush-react 0.6s ease-in-out infinite alternate !important;
 }
 
 @keyframes plush-arm-l {
@@ -972,12 +1071,20 @@ p {
 @keyframes plush-shadow-walk {
   0%,
   100% {
-    transform: scale(1, 1);
     opacity: 0.95;
   }
   50% {
-    transform: scale(0.82, 1);
-    opacity: 0.7;
+    opacity: 0.68;
+  }
+}
+
+@keyframes plush-shadow-hop {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.45;
   }
 }
 
@@ -1014,6 +1121,97 @@ p {
     transform: translate(8px, -16px);
   }
 }
+
+@keyframes fruit-react-bounce {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.06, 0.94) translateY(2px); }
+  50% { transform: scale(0.96, 1.06) translateY(-7px); }
+  75% { transform: scale(1.02, 0.98) translateY(-1px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+@keyframes fruit-react-hop {
+  0% { transform: scale(1) translateY(0); }
+  30% { transform: scale(1.08, 0.88) translateY(3px); }
+  60% { transform: scale(0.94, 1.08) translateY(-11px); }
+  85% { transform: scale(1.03, 0.97) translateY(-1px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+@keyframes fruit-react-dance {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-5deg) scale(1.03, 0.97) translateX(-3px); }
+  75% { transform: rotate(5deg) scale(1.03, 0.97) translateX(3px); }
+}
+
+@keyframes plush-reach-up-l {
+  0% { transform: rotate(-48deg); }
+  100% { transform: rotate(-65deg); }
+}
+
+@keyframes plush-reach-up-r {
+  0% { transform: rotate(48deg); }
+  100% { transform: rotate(65deg); }
+}
+
+@keyframes plush-dance-arm-l {
+  0%, 100% { transform: rotate(-18deg); }
+  50% { transform: rotate(26deg); }
+}
+
+@keyframes plush-dance-arm-r {
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(-26deg); }
+}
+
+@keyframes plush-wave-l {
+  0%, 100% {
+    transform: rotate(calc(-36deg * var(--arm-swing-scale, 1)));
+  }
+  50% {
+    transform: rotate(calc(18deg * var(--arm-swing-scale, 1)));
+  }
+}
+
+@keyframes plush-wave-r {
+  0%, 100% {
+    transform: rotate(calc(36deg * var(--arm-swing-scale, 1)));
+  }
+  50% {
+    transform: rotate(calc(-18deg * var(--arm-swing-scale, 1)));
+  }
+}
+
+@keyframes plush-wave-curve-l {
+  0%, 100% {
+    transform: rotate(-22deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes plush-wave-curve-r {
+  0%, 100% {
+    transform: rotate(38deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+}
+
+@keyframes plush-blush-react {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.95;
+    transform: scale(1.3);
+  }
+}
+
+
 
 
 

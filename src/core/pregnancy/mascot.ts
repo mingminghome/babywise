@@ -127,51 +127,86 @@ function xRangeAtY(
 /** Plant limbs on the real silhouette (works for tapers, fans, bottles). */
 export function anchorsFromGeometry(
   el: SVGGeometryElement,
-  shape?: FruitShape
+  shape?: FruitShape,
+  _fruitId?: FruitId,
+  facePose?: { x: number; y: number; scale: number }
 ): MascotLayout | null {
   const bbox = el.getBBox();
   if (bbox.width < 4 || bbox.height < 4) return null;
 
   const band = Math.max(3, bbox.height * 0.045);
-  const shoulderY = bbox.y + bbox.height * 0.4;
-  const shoulder =
-    xRangeAtY(el, shoulderY, band) ?? {
-      minX: bbox.x + 2,
-      maxX: bbox.x + bbox.width - 2,
-    };
+  const faceY = facePose?.y ?? 0;
 
-  const minHipWidth = Math.max(10, Math.min(18, bbox.width * 0.2));
-  let hip: { minX: number; maxX: number } | null = null;
-  let hipY = bbox.y + bbox.height * 0.86;
-  for (let t = 0.08; t <= 0.4; t += 0.02) {
-    hipY = bbox.y + bbox.height * (1 - t);
-    hip = xRangeAtY(el, hipY, band);
-    if (hip && hip.maxX - hip.minX >= minHipWidth) break;
+  // --- ARMS / SHOULDERS ---
+  // Frame the character's face at shoulder/chest height (near cheeks/smile)
+  let armL: MascotAnchor;
+  let armR: MascotAnchor;
+
+  if (shape === 'curve') {
+    // Banana crescent: face is at x=33, y=10; arms flank the face on inner and outer curves
+    armL = { x: 18, y: 16 };
+    armR = { x: 47.5, y: 16 };
+  } else if (shape === 'chard') {
+    // Swiss chard: leaf cluster sits high, arms flank upper foliage
+    armL = { x: -33, y: -12 };
+    armR = { x: 33, y: -12 };
+  } else {
+    const shoulderY = faceY + (shape === 'tiny' ? 5 : 8);
+    const shoulder =
+      xRangeAtY(el, shoulderY, band) ?? {
+        minX: bbox.x + 2,
+        maxX: bbox.x + bbox.width - 2,
+      };
+    armL = { x: shoulder.minX + 1.2, y: shoulderY };
+    armR = { x: shoulder.maxX - 1.2, y: shoulderY };
   }
-  if (!hip) {
-    hipY = bbox.y + bbox.height * 0.78;
-    hip = {
-      minX: bbox.x + bbox.width * 0.38,
-      maxX: bbox.x + bbox.width * 0.62,
-    };
+
+  // --- LEGS / FEET ---
+  // Cute, centered plush stance directly under the character's base
+  let legL: MascotAnchor;
+  let legR: MascotAnchor;
+
+  if (shape === 'curve') {
+    // Banana: feet firmly support the bottom base curve (no floating leg)
+    legL = { x: 12, y: 42 };
+    legR = { x: 24, y: 42 };
+  } else if (shape === 'chard') {
+    // Swiss chard: stalks extend down to y=36, feet stand at base of stalks
+    legL = { x: -8, y: 36 };
+    legR = { x: 8, y: 36 };
+  } else if (shape === 'cauli') {
+    // Cauliflower: leaves flare at bottom, feet centered at bottom base
+    legL = { x: -11, y: 33 };
+    legR = { x: 11, y: 33 };
+  } else if (shape === 'romaine') {
+    // Romaine: upright head, narrow base
+    legL = { x: -9, y: 28 };
+    legR = { x: 9, y: 28 };
+  } else if (shape === 'butternut') {
+    // Butternut: feet centered under bulb
+    legL = { x: -14, y: 50 };
+    legR = { x: 14, y: 50 };
+  } else if (shape === 'pepper') {
+    // Bell pepper: flat bottom base with lobes
+    legL = { x: -13, y: 35 };
+    legR = { x: 13, y: 35 };
+  } else if (shape === 'long') {
+    // Tall veggies (sweet potato, corn, eggplant, spaghetti squash)
+    legL = { x: -11, y: 52 };
+    legR = { x: 11, y: 52 };
+  } else if (shape === 'tiny') {
+    // Little seeds
+    legL = { x: -11, y: 27 };
+    legR = { x: 11, y: 27 };
+  } else {
+    // Round, oval, pear, lemon, heart, berry, pineapple
+    const stanceX = Math.min(15, Math.max(10, Math.round(bbox.width * 0.17)));
+    const hipY = Math.round(bbox.y + bbox.height - 2.5);
+    legL = { x: -stanceX, y: hipY };
+    legR = { x: stanceX, y: hipY };
   }
 
-  const drop =
-    shape === 'chard' || shape === 'cauli' ? 16 : shape === 'romaine' ? 8 : 0;
-  const gather = shape === 'chard' ? 8 : null;
-
-  return {
-    armL: { x: shoulder.minX + 1.2, y: shoulderY },
-    armR: { x: shoulder.maxX - 1.2, y: shoulderY },
-    legL: {
-      x: gather != null ? -gather : hip.minX + 1,
-      y: hipY + drop,
-    },
-    legR: {
-      x: gather != null ? gather : hip.maxX - 1,
-      y: hipY + drop,
-    },
-  };
+  return { armL, armR, legL, legR };
 }
 
 /**
@@ -205,10 +240,10 @@ export class FruitMascot {
   }
 
   /** Face sits on the produce, not at a global origin. */
-  facePose(): { x: number; y: number; scale: number } {
+  facePose(): { x: number; y: number; scale: number; rot?: number } {
     switch (this.look.id) {
       case 'banana':
-        return { x: 22, y: 8, scale: 0.62 };
+        return { x: 33, y: 12, scale: 0.48, rot: -8 };
       case 'swiss-chard':
         return { x: 0, y: -20, scale: 0.88 };
       default:

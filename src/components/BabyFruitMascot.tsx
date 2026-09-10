@@ -1,4 +1,12 @@
-import { useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from 'react';
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Ref,
+} from 'react';
 import {
   fruitNameKey,
   type FruitExtra,
@@ -17,6 +25,7 @@ import {
   type MascotLayout,
   type MascotMood,
 } from '../core/pregnancy/mascot';
+import { useMascotAction } from '../core/pregnancy/mascotActions';
 import type { TFunction } from '../core/i18n';
 
 export type { MascotMood };
@@ -39,6 +48,7 @@ function steps(from: number, to: number, step: number): number[] {
 /**
  * Renders a FruitMascot: shadow, body+pattern, accessories, stick limbs, face.
  * Size follows gestational week (seed → watermelon).
+ * Interactive: tapping/clicking wakes up sleeping fruits or triggers a cheerful wave!
  */
 export function BabyFruitMascot({ week, t }: Props) {
   const mascot = useMemo(() => new FruitMascot(week), [week]);
@@ -48,30 +58,53 @@ export function BabyFruitMascot({ week, t }: Props) {
   const clipId = `fruit-clip-${uid}`;
   const bodyRef = useRef<SVGPathElement>(null);
   const [layout, setLayout] = useState<MascotLayout>(MASCOT_FALLBACK_LAYOUT);
+
+  const { currentAction, activeMood, isReacting, shapeModifier, trigger } =
+    useMascotAction(mascot.mood, look.shape, look.id);
+
   const footY = Math.max(layout.legL.y, layout.legR.y) + MASCOT_LEG_LEN;
   const groupY = MASCOT_GROUND_Y - footY;
+  const shadowCx = 100 + (layout.legL.x + layout.legR.x) / 2;
   const name = t(`home.fruit.names.${fruitNameKey(look.id)}`);
   const caption =
     look.id === 'beginning'
       ? t('home.fruit.justBeginning')
       : t('home.fruit.sizeOf', { fruit: name });
-  const moodLabel = t(`home.fruit.mood.${mascot.mood}`);
   const face = mascot.facePose();
+  const moodLabel = t(`home.fruit.mood.${activeMood}`);
 
   useLayoutEffect(() => {
     const el = bodyRef.current;
     if (!el) return;
-    const next = anchorsFromGeometry(el, look.shape);
+    const next = anchorsFromGeometry(el, look.shape, look.id, face);
     if (next) setLayout(next);
-  }, [look.shape]);
+  }, [look.shape, look.id, face.x, face.y]);
 
   return (
     <figure
-      className="baby-fruit"
-      data-mood={mascot.mood}
+      className={`baby-fruit ${shapeModifier.shapeClass} ${isReacting ? 'is-reacting' : ''}`}
+      data-mood={activeMood}
+      data-action={currentAction}
+      data-reacting={isReacting ? 'true' : undefined}
+      data-shape={look.shape}
       data-week={mascot.week}
+      role="button"
+      tabIndex={0}
+      onClick={() => trigger()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          trigger();
+        }
+      }}
       title={`${caption} · ${moodLabel}. ${t('home.fruit.funHint')}`}
-      style={{ '--mascot-size': `${mascot.displayPx}px` } as CSSProperties}
+      aria-label={`${caption} · ${moodLabel}. Click to interact.`}
+      style={
+        {
+          '--mascot-size': `${mascot.displayPx}px`,
+          '--arm-swing-scale': shapeModifier.armSwingScale,
+        } as CSSProperties
+      }
     >
       <svg
         className="baby-fruit-svg mascot"
@@ -88,7 +121,7 @@ export function BabyFruitMascot({ week, t }: Props) {
 
         <ellipse
           className="mascot-shadow baby-fruit-shadow"
-          cx="100"
+          cx={shadowCx}
           cy={MASCOT_GROUND_Y + 6}
           rx={18 + 22 * mascot.scale}
           ry={4 + 3 * mascot.scale}
@@ -104,59 +137,62 @@ export function BabyFruitMascot({ week, t }: Props) {
             <BodyPath shape={look.shape} />
           </clipPath>
 
-          <g className="mascot-legs" transform={`translate(${layout.legL.x} ${layout.legL.y})`}>
-            <g className="mascot-limb plush-leg plush-leg-l">
-              <StickLimb kind="leg" />
+          {/* Character wrapper for jumping/dancing animations without moving shadow */}
+          <g className="mascot-anim-wrap plush-anim-wrap">
+            <g className="mascot-legs" transform={`translate(${layout.legL.x} ${layout.legL.y})`}>
+              <g className="mascot-limb plush-leg plush-leg-l">
+                <StickLimb kind="leg" />
+              </g>
             </g>
-          </g>
-          <g className="mascot-legs" transform={`translate(${layout.legR.x} ${layout.legR.y})`}>
-            <g className="mascot-limb plush-leg plush-leg-r">
-              <StickLimb kind="leg" />
+            <g className="mascot-legs" transform={`translate(${layout.legR.x} ${layout.legR.y})`}>
+              <g className="mascot-limb plush-leg plush-leg-r">
+                <StickLimb kind="leg" />
+              </g>
             </g>
-          </g>
 
-          <g className="mascot-body plush-body">
-            <BodyPath
-              shape={look.shape}
-              fill={`url(#${bodyGrad})`}
-              pathRef={bodyRef}
-            />
-            <g className="mascot-pattern" clipPath={`url(#${clipId})`}>
-              <PlushGrain />
-              <SurfacePattern look={look} />
-            </g>
-            {look.shape !== 'pepper' && look.shape !== 'curve' && (
-              <ellipse
-                cx="-16"
-                cy="-18"
-                rx="16"
-                ry="10"
-                fill="#fff"
-                opacity="0.14"
+            <g className="mascot-body plush-body">
+              <BodyPath
+                shape={look.shape}
+                fill={`url(#${bodyGrad})`}
+                pathRef={bodyRef}
               />
-            )}
-          </g>
-
-          <g className="mascot-head">
-            <Accessories look={look} />
-          </g>
-
-          <g className="mascot-arms" transform={`translate(${layout.armL.x} ${layout.armL.y})`}>
-            <g className="mascot-limb plush-arm plush-arm-l">
-              <StickLimb kind="arm" />
+              <g className="mascot-pattern" clipPath={`url(#${clipId})`}>
+                <PlushGrain />
+                <SurfacePattern look={look} />
+              </g>
+              {look.shape !== 'pepper' && look.shape !== 'curve' && (
+                <ellipse
+                  cx="-16"
+                  cy="-18"
+                  rx="16"
+                  ry="10"
+                  fill="#fff"
+                  opacity="0.14"
+                />
+              )}
             </g>
-          </g>
-          <g className="mascot-arms" transform={`translate(${layout.armR.x} ${layout.armR.y})`}>
-            <g className="mascot-limb plush-arm plush-arm-r">
-              <StickLimb kind="arm" />
-            </g>
-          </g>
 
-          <g
-            className="mascot-face-wrap"
-            transform={`translate(${face.x} ${face.y}) scale(${face.scale})`}
-          >
-            <Face mood={mascot.mood} />
+            <g className="mascot-head">
+              <Accessories look={look} />
+            </g>
+
+            <g className="mascot-arms" transform={`translate(${layout.armL.x} ${layout.armL.y})`}>
+              <g className="mascot-limb plush-arm plush-arm-l">
+                <StickLimb kind="arm" />
+              </g>
+            </g>
+            <g className="mascot-arms" transform={`translate(${layout.armR.x} ${layout.armR.y})`}>
+              <g className="mascot-limb plush-arm plush-arm-r">
+                <StickLimb kind="arm" />
+              </g>
+            </g>
+
+            <g
+              className="mascot-face-wrap"
+              transform={`translate(${face.x} ${face.y}) rotate(${face.rot ?? 0}) scale(${face.scale})`}
+            >
+              <Face mood={activeMood} />
+            </g>
           </g>
         </g>
       </svg>
@@ -474,10 +510,57 @@ function Accessories({ look }: { look: FruitLook & { id: FruitId } }) {
           case 'stem':
             if (look.shape === 'pepper') {
               return (
-                <g key={extra} fill={a}>
-                  <ellipse cx="0" cy="-32" rx="14" ry="6" />
-                  <ellipse cx="0" cy="-34" rx="6" ry="11" />
-                  <rect x="-2.5" y="-54" width="5" height="16" rx="2.5" />
+                <g key={extra} className="mascot-pepper-stem">
+                  {/* Curved 3D Pepper Stalk */}
+                  <path
+                    d="M-3 -22 C-3 -36, 9 -40, 7 -54 C4 -57, 0 -54, -1 -50 C-4 -42, -8 -34, -7 -22 Z"
+                    fill={look.fillDark}
+                    opacity="0.9"
+                  />
+                  <path
+                    d="M-3 -22 C-3 -36, 8 -39, 6 -52 C4 -55, 1 -52, 0 -48 C-2 -41, -6 -34, -5 -22 Z"
+                    fill={a}
+                  />
+                  <path
+                    d="M-1 -22 C-1 -34, 7 -37, 5 -49 C6 -47, 1 -36, 0 -22 Z"
+                    fill="#fff"
+                    opacity="0.28"
+                  />
+
+                  {/* 5-Pointed Leafy Calyx Crown ("Hair") hugging top indentation */}
+                  {/* Shadow under the leafy crown */}
+                  <path
+                    d="M0 -21
+                       L-6 -31 L-4 -23
+                       L-17 -28 L-12 -20
+                       L-23 -19 L-14 -14
+                       L-15 -7  L-8 -12
+                       L0 -8
+                       L8 -12  L6 -7
+                       L14 -14 L23 -19
+                       L12 -20 L17 -28
+                       L4 -23  L6 -31 Z"
+                    fill="#1e3a14"
+                    opacity="0.22"
+                    transform="translate(0 1)"
+                  />
+                  {/* Main Green Leafy Calyx ("Hair") */}
+                  <path
+                    d="M0 -22
+                       L-6 -32 L-4 -24
+                       L-18 -29 L-12 -21
+                       L-24 -20 L-14 -15
+                       L-16 -8  L-8 -13
+                       L0 -9
+                       L8 -13  L6 -8
+                       L14 -15 L24 -20
+                       L12 -21 L18 -29
+                       L4 -24  L6 -32 Z"
+                    fill={a}
+                  />
+                  {/* Subtle highlight on calyx center */}
+                  <ellipse cx="0" cy="-20" rx="9" ry="4.5" fill="#fff" opacity="0.2" />
+                  <circle cx="0" cy="-21" r="3.5" fill={a} />
                 </g>
               );
             }
@@ -491,12 +574,11 @@ function Accessories({ look }: { look: FruitLook & { id: FruitId } }) {
                   <g
                     fill="none"
                     stroke={look.fillDark}
-                    strokeWidth="1.5"
-                    opacity="0.4"
+                    strokeWidth="1.6"
+                    opacity="0.25"
                     strokeLinecap="round"
                   >
-                    <path d="M12-18 Q26 0 20 28" />
-                    <path d="M6-6 Q18 12 14 32" />
+                    <path d="M 22 -38 C 34 -18 38 12 24 38" />
                   </g>
                 </g>
               );
