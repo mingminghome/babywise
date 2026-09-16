@@ -8,6 +8,8 @@ type Summary = {
   hasProfile: boolean;
   eventCount: number;
   askCount: number;
+  babyCount: number;
+  laborCount: number;
   hasCustomSettings: boolean;
   keyCount: number;
 };
@@ -25,6 +27,8 @@ const OPTIONS: Array<{ id: DataCategory; labelKey: string }> = [
   { id: 'profile', labelKey: 'settings.cleanProfile' },
   { id: 'events', labelKey: 'settings.cleanEvents' },
   { id: 'askHistory', labelKey: 'settings.cleanAsk' },
+  { id: 'babies', labelKey: 'settings.cleanBabies' },
+  { id: 'labor', labelKey: 'settings.cleanLabor' },
   { id: 'settings', labelKey: 'settings.cleanSettings' },
 ];
 
@@ -46,7 +50,11 @@ export function CleanDataPanel({ t, summary, onClean, onCleaned }: Props) {
             ? t('settings.cleanDoneEvents')
             : category === 'askHistory'
               ? t('settings.cleanDoneAsk')
-              : t('settings.cleanDoneSettings');
+              : category === 'babies'
+                ? t('settings.cleanDoneBabies')
+                : category === 'labor'
+                  ? t('settings.cleanDoneLabor')
+                  : t('settings.cleanDoneSettings');
 
     setResult(msg);
     onCleaned?.(category);
@@ -76,6 +84,8 @@ export function CleanDataPanel({ t, summary, onClean, onCleaned }: Props) {
             </li>
             <li>{t('settings.dataEvents', { n: summary.eventCount })}</li>
             <li>{t('settings.dataAsk', { n: summary.askCount })}</li>
+            <li>{t('settings.dataBabies', { n: summary.babyCount })}</li>
+            <li>{t('settings.dataLabor', { n: summary.laborCount })}</li>
             <li>
               {t('settings.dataSettings')}:{' '}
               {summary.hasCustomSettings ? t('common.present') : t('common.missing')}

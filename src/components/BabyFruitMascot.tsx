@@ -17,11 +17,11 @@ import {
 import {
   FruitMascot,
   MASCOT_ARM_LEN,
-  MASCOT_FALLBACK_LAYOUT,
   MASCOT_GROUND_Y,
   MASCOT_LEG_LEN,
   anchorsFromGeometry,
   bodyPathD,
+  defaultLayoutForShape,
   type MascotLayout,
   type MascotMood,
 } from '../core/pregnancy/mascot';
@@ -57,7 +57,14 @@ export function BabyFruitMascot({ week, t }: Props) {
   const bodyGrad = `fruit-body-${uid}`;
   const clipId = `fruit-clip-${uid}`;
   const bodyRef = useRef<SVGPathElement>(null);
-  const [layout, setLayout] = useState<MascotLayout>(MASCOT_FALLBACK_LAYOUT);
+  const [layout, setLayout] = useState<MascotLayout>(() =>
+    defaultLayoutForShape(look.shape)
+  );
+  const prevShapeRef = useRef(look.shape);
+  if (prevShapeRef.current !== look.shape) {
+    prevShapeRef.current = look.shape;
+    setLayout(defaultLayoutForShape(look.shape));
+  }
 
   const { currentAction, activeMood, isReacting, shapeModifier, trigger } =
     useMascotAction(mascot.mood, look.shape, look.id);
@@ -696,16 +703,44 @@ function Accessories({ look }: { look: FruitLook & { id: FruitId } }) {
           case 'stems':
             return (
               <g key={extra}>
+                {/* Bundled Swiss Chard Stalks descending solidly to feet base (y=38) */}
                 <g
                   fill="none"
                   stroke={a}
-                  strokeWidth="6"
+                  strokeWidth="5.5"
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <path d="M0 36 L-26 -20" />
-                  <path d="M0 36 L-4 -28" />
-                  <path d="M0 36 L24 -18" />
+                  {/* Outer left stalk curving to left leg anchor (-8, 38) */}
+                  <path d="M-22 -14 C-20 8, -12 24, -8 38" />
+                  {/* Inner left stalk */}
+                  <path d="M-7 -22 C-6 6, -5 24, -3 38" />
+                  {/* Inner right stalk */}
+                  <path d="M7 -22 C6 6, 5 24, 3 38" />
+                  {/* Outer right stalk curving to right leg anchor (8, 38) */}
+                  <path d="M22 -14 C20 8, 12 24, 8 38" />
                 </g>
+
+                {/* Stalk highlights for glossy organic rib texture */}
+                <g
+                  fill="none"
+                  stroke="#ff98b4"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  opacity="0.45"
+                >
+                  <path d="M-20 -10 C-18 8, -11 24, -8 36" />
+                  <path d="M-6 -18 C-5 6, -4 24, -3 36" />
+                  <path d="M6 -18 C5 6, 4 24, 3 36" />
+                  <path d="M20 -10 C18 8, 11 24, 8 36" />
+                </g>
+
+                {/* Solid bunch base cap across x: -12..12 at y: 38 - feet firmly rooted here */}
+                <ellipse cx="0" cy="38" rx="13" ry="4.5" fill={look.fillDark} opacity="0.25" />
+                <ellipse cx="0" cy="38" rx="12" ry="4" fill={a} />
+                <ellipse cx="0" cy="38" rx="9" ry="2.2" fill={look.fillDark} opacity="0.32" />
+
+                {/* Leafy flairs and crinkly greens */}
                 <g fill={look.fill} stroke={look.fillDark} strokeWidth="1.2">
                   <ellipse
                     cx="-26"

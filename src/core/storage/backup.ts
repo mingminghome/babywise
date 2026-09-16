@@ -7,18 +7,24 @@ import { APP_VERSION } from '../../version';
 import type {
   AppSettings,
   AskHistoryItem,
+  BabyProfile,
   CalendarEvent,
+  LaborSession,
   PregnancyProfile,
 } from '../types';
 import {
   getAskHistory,
+  getBabies,
   getDefaultSettings,
   getEvents,
+  getLaborSessions,
   getProfile,
   getSettings,
   hasDisclaimerAck,
   saveAskHistory,
+  saveBabies,
   saveEvents,
+  saveLaborSessions,
   saveProfile,
   saveSettings,
   STORAGE_KEYS,
@@ -32,6 +38,8 @@ export type BackupData = {
   events: CalendarEvent[];
   settings: AppSettings | null;
   askHistory: AskHistoryItem[];
+  babies: BabyProfile[];
+  laborSessions: LaborSession[];
   /** ISO string if disclaimer was accepted on source device */
   disclaimerAck: string | null;
 };
@@ -54,6 +62,8 @@ export type BackupImportResult =
       events: number;
       settings: boolean;
       askHistory: number;
+      babies: number;
+      laborSessions: number;
     }
   | { ok: false; reason: 'invalid' | 'unsupported' | 'empty' | 'parse' };
 
@@ -86,6 +96,8 @@ export function buildBackup(): BabywiseBackup {
       events: getEvents(),
       settings: getSettings(),
       askHistory: getAskHistory(),
+      babies: getBabies(),
+      laborSessions: getLaborSessions(),
       disclaimerAck: readDisclaimerAck() ?? (hasDisclaimerAck() ? new Date().toISOString() : null),
     },
   };
@@ -181,6 +193,22 @@ function asAskHistory(raw: unknown): AskHistoryItem[] {
   ) as AskHistoryItem[];
 }
 
+function asBabies(raw: unknown): BabyProfile[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (b): b is BabyProfile =>
+      isObject(b) && typeof b.id === 'string' && typeof b.name === 'string'
+  ) as BabyProfile[];
+}
+
+function asLaborSessions(raw: unknown): LaborSession[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (s): s is LaborSession =>
+      isObject(s) && typeof s.id === 'string' && Array.isArray(s.contractions)
+  ) as LaborSession[];
+}
+
 function asProfile(raw: unknown): PregnancyProfile | null {
   if (!isObject(raw)) return null;
   if (raw.method !== 'lmp' && raw.method !== 'due_date') return null;
@@ -235,6 +263,8 @@ export function parseBackup(raw: unknown): BabywiseBackup | null {
       events: asEvents(data.events),
       settings: asSettings(data.settings),
       askHistory: asAskHistory(data.askHistory),
+      babies: asBabies(data.babies),
+      laborSessions: asLaborSessions(data.laborSessions),
       disclaimerAck:
         typeof data.disclaimerAck === 'string' ? data.disclaimerAck : null,
     },
@@ -255,7 +285,9 @@ export function applyBackup(
     data.profile ||
     data.events.length > 0 ||
     data.settings ||
-    data.askHistory.length > 0;
+    data.askHistory.length > 0 ||
+    data.babies.length > 0 ||
+    data.laborSessions.length > 0;
   if (!hasAnything) {
     return { ok: false, reason: 'empty' };
   }
@@ -265,6 +297,8 @@ export function applyBackup(
     saveEvents(data.events);
     if (data.settings) saveSettings(data.settings);
     saveAskHistory(data.askHistory);
+    saveBabies(data.babies);
+    saveLaborSessions(data.laborSessions);
     if (data.disclaimerAck) writeDisclaimerAck(data.disclaimerAck);
   } else {
     // mergeEvents: append events / history that don't collide on id
@@ -294,6 +328,32 @@ export function applyBackup(
     }
     saveAskHistory(mergedHist.slice(0, 30));
 
+    const babies = getBabies();
+    const bIds = new Set(babies.map((b) => b.id));
+    const mergedBabies = [...babies];
+    for (const b of data.babies) {
+      const idx = mergedBabies.findIndex((x) => x.id === b.id);
+      if (idx >= 0) mergedBabies[idx] = b;
+      else if (!bIds.has(b.id)) {
+        mergedBabies.push(b);
+        bIds.add(b.id);
+      }
+    }
+    saveBabies(mergedBabies);
+
+    const labor = getLaborSessions();
+    const lIds = new Set(labor.map((s) => s.id));
+    const mergedLabor = [...labor];
+    for (const s of data.laborSessions) {
+      const idx = mergedLabor.findIndex((x) => x.id === s.id);
+      if (idx >= 0) mergedLabor[idx] = s;
+      else if (!lIds.has(s.id)) {
+        mergedLabor.push(s);
+        lIds.add(s.id);
+      }
+    }
+    saveLaborSessions(mergedLabor);
+
     // Optionally fill missing profile from backup
     if (data.profile && !getProfile()) {
       saveProfile(data.profile);
@@ -307,6 +367,8 @@ export function applyBackup(
     events: data.events.length,
     settings: Boolean(data.settings),
     askHistory: data.askHistory.length,
+    babies: data.babies.length,
+    laborSessions: data.laborSessions.length,
   };
 }
 

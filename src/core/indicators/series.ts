@@ -25,6 +25,8 @@ export const CHARTABLE_KINDS: IndicatorKind[] = [
   'temperature',
   'fundal_height',
   'kick_count',
+  'length',
+  'head_circumference',
 ];
 
 function shouldSumPerDay(kind: IndicatorKind): boolean {
@@ -34,7 +36,7 @@ function shouldSumPerDay(kind: IndicatorKind): boolean {
 /**
  * Collect dated indicator readings for a kind, sorted ascending by date.
  * - calories / kick_count: same-day entries are **summed** into one point
- * - other kinds: same-day entries keep the **latest** reading (last by created order)
+ * - other kinds: same-day entries use the **mean** (weight, temp, length, …)
  */
 export function indicatorSeries(
   events: CalendarEvent[],
@@ -42,15 +44,16 @@ export function indicatorSeries(
 ): SeriesPoint[] {
   type Acc = {
     date: string;
-    value: number;
-    valueSecondary?: number;
+    sum: number;
+    sum2: number;
+    has2: boolean;
     eventId: string;
     count: number;
   };
   const byDate = new Map<string, Acc>();
+  const sumKind = shouldSumPerDay(kind);
 
-  // Stable order: older first so “latest” overwrite works for non-sum kinds
-  const ordered = [...events].sort((a, b) =>
+  const ordered = [...events].toSorted((a, b) =>
     (a.createdAt || '').localeCompare(b.createdAt || '')
   );
 
@@ -60,49 +63,60 @@ export function indicatorSeries(
     }
     const date = (e.startAt ?? e.createdAt).slice(0, 10);
     if (!date) continue;
+    const v2 = e.indicator.valueSecondary;
     const prev = byDate.get(date);
     if (!prev) {
       byDate.set(date, {
         date,
-        value: e.indicator.value,
-        valueSecondary: e.indicator.valueSecondary,
+        sum: e.indicator.value,
+        sum2: v2 ?? 0,
+        has2: v2 != null,
         eventId: e.id,
         count: 1,
       });
       continue;
     }
-    if (shouldSumPerDay(kind)) {
-      byDate.set(date, {
-        date,
-        value: prev.value + e.indicator.value,
-        valueSecondary:
-          prev.valueSecondary != null || e.indicator.valueSecondary != null
-            ? (prev.valueSecondary ?? 0) + (e.indicator.valueSecondary ?? 0)
-            : undefined,
-        eventId: e.id,
-        count: prev.count + 1,
-      });
-    } else {
-      // Latest reading of the day wins (weight, BP, …)
-      byDate.set(date, {
-        date,
-        value: e.indicator.value,
-        valueSecondary: e.indicator.valueSecondary,
-        eventId: e.id,
-        count: prev.count + 1,
-      });
-    }
+    byDate.set(date, {
+      date,
+      sum: prev.sum + e.indicator.value,
+      sum2: prev.sum2 + (v2 ?? 0),
+      has2: prev.has2 || v2 != null,
+      eventId: e.id,
+      count: prev.count + 1,
+    });
   }
 
   return [...byDate.values()]
-    .sort((a, b) => a.date.localeCompare(b.date))
+    .toSorted((a, b) => a.date.localeCompare(b.date))
     .map((a) => ({
       date: a.date,
-      value: a.value,
-      valueSecondary: a.valueSecondary,
+      value: sumKind ? a.sum : a.sum / a.count,
+      valueSecondary: a.has2
+        ? sumKind
+          ? a.sum2
+          : a.sum2 / a.count
+        : undefined,
       eventId: a.eventId,
       sampleCount: a.count,
     }));
+}
+
+export function seriesMean(points: SeriesPoint[]): number | null {
+  if (!points.length) return null;
+  return points.reduce((s, p) => s + p.value, 0) / points.length;
+}
+
+/** Simple moving average (centered-left: last `window` points including current). */
+export function movingAverage(
+  points: SeriesPoint[],
+  window = 3
+): number[] {
+  const w = Math.max(2, window);
+  return points.map((_, i) => {
+    const from = Math.max(0, i - w + 1);
+    const slice = points.slice(from, i + 1);
+    return slice.reduce((s, p) => s + p.value, 0) / slice.length;
+  });
 }
 
 /** Sum of indicator values for a kind on one calendar day (raw logs). */

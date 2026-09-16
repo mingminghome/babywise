@@ -16,12 +16,20 @@ import {
   type BackupImportResult,
 } from '../core/storage/backup';
 import { loadDemoData } from '../core/storage/demoData';
+import { isBabyTabVisible } from '../core/baby/logs';
+import { resolveLaborRule } from '../core/labor/engine';
 import {
   clearLocalData,
   getAskHistory,
+  getBabies,
+  getEvents,
+  getLaborSessions,
   getProfile,
   getSettings,
   saveAskHistory,
+  saveBabies,
+  saveEvents,
+  saveLaborSessions,
   saveProfile,
   saveSettings,
   summarizeLocalData,
@@ -29,13 +37,28 @@ import {
 import type {
   AppSettings,
   AskHistoryItem,
+  BabyProfile,
   CalendarEvent,
   CompletionKind,
   DataCategory,
+  LaborSession,
   PregnancyProfile,
+  HomeMode,
 } from '../core/types';
 
-export type TabId = 'home' | 'calendar' | 'ask' | 'settings' | 'about';
+export type TabId =
+  | 'home'
+  | 'calendar'
+  | 'baby'
+  | 'ask'
+  | 'settings'
+  | 'about'
+  | 'tools';
+
+export type PendingAsk = {
+  question: string;
+  autoSubmit?: boolean;
+};
 
 export function useAppState() {
   const [tab, setTab] = useState<TabId>('home');
@@ -43,10 +66,24 @@ export function useAppState() {
   const [settings, setSettings] = useState<AppSettings>(() => getSettings());
   const [events, setEvents] = useState<CalendarEvent[]>(() => listEvents());
   const [askHistory, setAskHistory] = useState<AskHistoryItem[]>(() => getAskHistory());
+  const [babies, setBabies] = useState<BabyProfile[]>(() => getBabies());
+  const [laborSessions, setLaborSessions] = useState<LaborSession[]>(() =>
+    getLaborSessions()
+  );
+  const [pendingAsk, setPendingAsk] = useState<PendingAsk | null>(null);
   const [tick, setTick] = useState(0);
 
   const t = useMemo(() => createT(settings.locale), [settings.locale]);
   const ga = useMemo(() => getGestationalAge(profile), [profile, tick]);
+  const homeMode: HomeMode =
+    settings.homeMode ?? (settings.hidePregnancy ? 'baby' : 'pregnancy');
+  const showBabyTab = isBabyTabVisible(settings, babies);
+  const laborRule = useMemo(() => resolveLaborRule(settings), [settings]);
+
+  useEffect(() => {
+    if (tab === 'baby' && !showBabyTab) setTab('home');
+    if (tab === 'tools' && homeMode === 'baby') setTab('home');
+  }, [tab, showBabyTab, homeMode]);
 
   useEffect(() => {
     const id = window.setInterval(() => setTick((n) => n + 1), 60_000);
@@ -124,6 +161,110 @@ export function useAppState() {
     });
   }, []);
 
+  const saveBaby = useCallback(
+    (
+      input: Omit<BabyProfile, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
+    ): BabyProfile => {
+      const now = new Date().toISOString();
+      const list = getBabies();
+      let saved: BabyProfile;
+      if (input.id) {
+        const idx = list.findIndex((b) => b.id === input.id);
+        if (idx >= 0) {
+          saved = { ...list[idx], ...input, id: input.id, updatedAt: now };
+          list[idx] = saved;
+        } else {
+          saved = {
+            ...input,
+            id: input.id,
+            createdAt: now,
+            updatedAt: now,
+          };
+          list.push(saved);
+        }
+      } else {
+        saved = {
+          ...input,
+          id: crypto.randomUUID(),
+          createdAt: now,
+          updatedAt: now,
+        };
+        list.push(saved);
+      }
+      saveBabies(list);
+      setBabies(list);
+      const s = getSettings();
+      saveSettings({
+        ...s,
+        babyCareEnabled: true,
+        activeBabyId: saved.id,
+      });
+      setSettings(getSettings());
+      return saved;
+    },
+    []
+  );
+
+  const removeBaby = useCallback((id: string) => {
+    const nextBabies = getBabies().filter((b) => b.id !== id);
+    saveBabies(nextBabies);
+    setBabies(nextBabies);
+    const remaining = getEvents().filter((e) => e.babyId !== id);
+    saveEvents(remaining);
+    setEvents(listEvents());
+    const s = getSettings();
+    const nextActive =
+      s.activeBabyId === id ? nextBabies[0]?.id : s.activeBabyId;
+    saveSettings({ ...s, activeBabyId: nextActive });
+    setSettings(getSettings());
+  }, []);
+
+  const setActiveBabyId = useCallback((id: string) => {
+    const s = getSettings();
+    saveSettings({ ...s, activeBabyId: id });
+    setSettings(getSettings());
+  }, []);
+
+  const saveLaborSession = useCallback(
+    (
+      input: Omit<LaborSession, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
+    ): LaborSession => {
+      const now = new Date().toISOString();
+      const list = getLaborSessions();
+      let saved: LaborSession;
+      if (input.id) {
+        const idx = list.findIndex((s) => s.id === input.id);
+        if (idx >= 0) {
+          saved = { ...list[idx], ...input, id: input.id, updatedAt: now };
+          list[idx] = saved;
+        } else {
+          saved = { ...input, id: input.id, createdAt: now, updatedAt: now };
+          list.push(saved);
+        }
+      } else {
+        saved = {
+          ...input,
+          id: crypto.randomUUID(),
+          createdAt: now,
+          updatedAt: now,
+        };
+        list.push(saved);
+      }
+      saveLaborSessions(list);
+      setLaborSessions(list);
+      return saved;
+    },
+    []
+  );
+
+  const removeLaborSession = useCallback((id: string) => {
+    const next = getLaborSessions().filter((s) => s.id !== id);
+    saveLaborSessions(next);
+    setLaborSessions(next);
+  }, []);
+
+  const clearPendingAsk = useCallback(() => setPendingAsk(null), []);
+
   const cleanData = useCallback((category: DataCategory = 'all') => {
     clearLocalData(category);
     if (category === 'all' || category === 'profile') {
@@ -138,13 +279,22 @@ export function useAppState() {
     if (category === 'all' || category === 'askHistory') {
       setAskHistory(getAskHistory());
     }
+    if (category === 'all' || category === 'babies') {
+      setBabies(getBabies());
+    }
+    if (category === 'all' || category === 'labor') {
+      setLaborSessions(getLaborSessions());
+    }
   }, []);
 
-  /** Load random sample profile + calendar (overwrites those two stores). */
+  /** Load random sample pregnancy, babies, labor, and calendar. */
   const loadSampleData = useCallback(() => {
     const result = loadDemoData();
     setProfile(result.profile);
     setEvents(listEvents());
+    setBabies(getBabies());
+    setLaborSessions(getLaborSessions());
+    setSettings(getSettings());
     return result;
   }, []);
 
@@ -154,6 +304,8 @@ export function useAppState() {
     setSettings(getSettings());
     setEvents(listEvents());
     setAskHistory(getAskHistory());
+    setBabies(getBabies());
+    setLaborSessions(getLaborSessions());
     setTick((n) => n + 1);
   }, []);
 
@@ -173,7 +325,10 @@ export function useAppState() {
     [reloadFromStorage]
   );
 
-  const dataSummary = useMemo(() => summarizeLocalData(), [profile, events, askHistory, settings, tick]);
+  const dataSummary = useMemo(
+    () => summarizeLocalData(),
+    [profile, events, askHistory, settings, babies, laborSessions, tick]
+  );
 
   return {
     tab,
@@ -189,6 +344,19 @@ export function useAppState() {
     askHistory,
     pushAskHistory,
     removeAskHistory,
+    babies,
+    saveBaby,
+    removeBaby,
+    setActiveBabyId,
+    homeMode,
+    showBabyTab,
+    laborSessions,
+    saveLaborSession,
+    removeLaborSession,
+    laborRule,
+    pendingAsk,
+    setPendingAsk,
+    clearPendingAsk,
     cleanData,
     loadSampleData,
     exportBackup,

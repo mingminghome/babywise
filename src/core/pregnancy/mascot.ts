@@ -124,6 +124,76 @@ function xRangeAtY(
   return { minX, maxX };
 }
 
+export function defaultLayoutForShape(shape?: FruitShape): MascotLayout {
+  switch (shape) {
+    case 'curve':
+      return {
+        armL: { x: 18, y: 16 },
+        armR: { x: 47.5, y: 16 },
+        legL: { x: 12, y: 42 },
+        legR: { x: 24, y: 42 },
+      };
+    case 'chard':
+      return {
+        armL: { x: -33, y: -12 },
+        armR: { x: 33, y: -12 },
+        legL: { x: -8, y: 38 },
+        legR: { x: 8, y: 38 },
+      };
+    case 'lemon':
+      return {
+        armL: { x: -36, y: 8 },
+        armR: { x: 36, y: 8 },
+        legL: { x: -10, y: 42 },
+        legR: { x: 10, y: 42 },
+      };
+    case 'cauli':
+      return {
+        armL: { x: -34, y: 8 },
+        armR: { x: 34, y: 8 },
+        legL: { x: -11, y: 33 },
+        legR: { x: 11, y: 33 },
+      };
+    case 'romaine':
+      return {
+        armL: { x: -22, y: 8 },
+        armR: { x: 22, y: 8 },
+        legL: { x: -9, y: 28 },
+        legR: { x: 9, y: 28 },
+      };
+    case 'butternut':
+      return {
+        armL: { x: -36, y: 8 },
+        armR: { x: 36, y: 8 },
+        legL: { x: -14, y: 50 },
+        legR: { x: 14, y: 50 },
+      };
+    case 'pepper':
+      return {
+        armL: { x: -35, y: 8 },
+        armR: { x: 35, y: 8 },
+        legL: { x: -13, y: 35 },
+        legR: { x: 13, y: 35 },
+      };
+    case 'long':
+      return {
+        armL: { x: -28, y: 8 },
+        armR: { x: 28, y: 8 },
+        legL: { x: -11, y: 52 },
+        legR: { x: 11, y: 52 },
+      };
+    case 'tiny':
+      return {
+        armL: { x: -24, y: 6 },
+        armR: { x: 24, y: 6 },
+        legL: { x: -11, y: 27 },
+        legR: { x: 11, y: 27 },
+      };
+    default:
+      return MASCOT_FALLBACK_LAYOUT;
+  }
+}
+
 /** Plant limbs on the real silhouette (works for tapers, fans, bottles). */
 export function anchorsFromGeometry(
   el: SVGGeometryElement,
@@ -171,9 +241,14 @@ export function anchorsFromGeometry(
     legL = { x: 12, y: 42 };
     legR = { x: 24, y: 42 };
   } else if (shape === 'chard') {
-    // Swiss chard: stalks extend down to y=36, feet stand at base of stalks
-    legL = { x: -8, y: 36 };
-    legR = { x: 8, y: 36 };
+    // Swiss chard: stalks extend down to y=38, feet stand at base of stalks
+    legL = { x: -8, y: 38 };
+    legR = { x: 8, y: 38 };
+  } else if (shape === 'lemon') {
+    // Lemon: body tapers to a small sharp nub at bottom (y=54).
+    // Feet attach firmly to the lower rounded curves at y=42 flanking the nub.
+    legL = { x: -10, y: 42 };
+    legR = { x: 10, y: 42 };
   } else if (shape === 'cauli') {
     // Cauliflower: leaves flare at bottom, feet centered at bottom base
     legL = { x: -11, y: 33 };
@@ -199,7 +274,7 @@ export function anchorsFromGeometry(
     legL = { x: -11, y: 27 };
     legR = { x: 11, y: 27 };
   } else {
-    // Round, oval, pear, lemon, heart, berry, pineapple
+    // Round, oval, pear, heart, berry, pineapple
     const stanceX = Math.min(15, Math.max(10, Math.round(bbox.width * 0.17)));
     const hipY = Math.round(bbox.y + bbox.height - 2.5);
     legL = { x: -stanceX, y: hipY };
@@ -251,17 +326,8 @@ export class FruitMascot {
     }
   }
 
-  /** Slight turn so layered veggies read in 3/4 instead of flat-on. */
+  /** Standing angle: characters stand upright and centered over their feet. */
   tiltDeg(): number {
-    switch (this.look.id) {
-      case 'romaine':
-        return -12;
-      case 'swiss-chard':
-        return -14;
-      case 'cauliflower':
-        return -10;
-      default:
-        return 0;
-    }
+    return 0;
   }
 }

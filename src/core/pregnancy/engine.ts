@@ -269,7 +269,7 @@ export function formatIsoDate(iso: string, locale: string): string {
   if (!isIsoDate(iso)) return iso;
   const d = parseDateOnly(iso);
   try {
-    return d.toLocaleDateString(locale.startsWith('zh') ? 'zh-Hant' : 'en', {
+    return d.toLocaleDateString(locale.startsWith('zh') ? 'zh-Hant' : locale || 'en', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

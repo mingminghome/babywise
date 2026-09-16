@@ -8,6 +8,8 @@ export type AskImagePayload = {
 
 export type AskRequest = {
   locale: string;
+  mode?: 'pregnancy' | 'baby';
+  babyName?: string;
   pregnancyWeek?: number | null;
   text?: string;
   /** Optional short context from local calendar (server-capped) */

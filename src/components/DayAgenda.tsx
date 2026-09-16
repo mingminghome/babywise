@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Activity,
+  Baby,
   Bell,
   CalendarClock,
   Check,
@@ -13,6 +14,8 @@ import {
   StickyNote,
   X,
 } from 'lucide-react';
+import { eventTypeIcon } from './eventIcons';
+import { isBabyLogType } from '../core/calendar/meta';
 import {
   completeActionKey,
   eventTimeLabel,
@@ -85,7 +88,12 @@ function Action({
   t: TFunction;
   onComplete: Props['onComplete'];
 }) {
-  if (e.type === 'medicine_log' || e.type === 'note' || e.type === 'indicator') {
+  if (
+    e.type === 'medicine_log' ||
+    e.type === 'note' ||
+    e.type === 'indicator' ||
+    isBabyLogType(e.type)
+  ) {
     return null;
   }
   const done = getCompletion(e, dayIso);
@@ -164,7 +172,10 @@ export function DayAgenda({
   const appointments = items.filter((e) => e.type === 'appointment');
   const reminders = items.filter((e) => e.type === 'reminder');
   const notes = items.filter((e) => e.type === 'note');
-  const indicators = items.filter((e) => e.type === 'indicator');
+  const indicators = items.filter((e) => e.type === 'indicator' && !e.babyId);
+  const babyCare = items.filter(
+    (e) => isBabyLogType(e.type) || (e.type === 'indicator' && Boolean(e.babyId))
+  );
 
   const charted = chartableSeries(allEvents);
   const chartedKinds = new Set(charted.map((c) => c.kind));
@@ -247,7 +258,8 @@ export function DayAgenda({
       indicatorTiles.length +
       sumTiles.length +
       multiVitalGroups.length +
-      chartsForDay.length >
+      chartsForDay.length +
+      babyCare.length >
     0;
 
   const toggleId = (id: string) => {
@@ -590,6 +602,56 @@ export function DayAgenda({
         </section>
       )}
 
+      {babyCare.length > 0 && (
+        <section className="day-section">
+          <h3 className="day-section-title">
+            <Baby size={15} aria-hidden />
+            {t('calendar.sectionBaby')}
+          </h3>
+          <div className="day-section-body">
+            {[...babyCare].toSorted(sortByEventTime).map((e) => {
+              const Icon = eventTypeIcon(e.type);
+              const clock = eventTimeLabel(e);
+              const isSel = selected.has(e.id);
+              return (
+                <article
+                  key={e.id}
+                  className={`day-card ${isSel ? 'is-selected' : ''}`}
+                >
+                  {selecting && (
+                    <button
+                      type="button"
+                      className="day-select-hit"
+                      aria-pressed={isSel}
+                      aria-label={t('calendar.selectItem')}
+                      onClick={() => toggleId(e.id)}
+                    >
+                      <SelectMark on={isSel} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="day-card-main"
+                    onClick={() => onItemActivate(e)}
+                  >
+                    <span className={`day-card-icon is-${e.type}`} aria-hidden>
+                      <Icon size={18} />
+                    </span>
+                    <div className="day-card-copy">
+                      <div className="day-card-title">{e.title}</div>
+                      <div className="day-card-meta muted">
+                        {t(`calendar.types.${e.type}`)}
+                        {clock ? ` · ${clock}` : ''}
+                      </div>
+                    </div>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {notes.length > 0 && (
         <section className="day-section">
           <h3 className="day-section-title">
@@ -636,6 +698,7 @@ export function DayAgenda({
                     points={points}
                     locale={locale}
                     unitHint={getIndicatorMeta(kind).defaultUnit}
+                    t={t}
                   />
                   {dayPoint &&
                     (dayPoint.sampleCount ?? 1) > 1 &&

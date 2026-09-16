@@ -1,4 +1,27 @@
-export type Locale = 'en' | 'zh-Hant';
+export type Locale =
+  | 'en'
+  | 'zh-Hant'
+  | 'de'
+  | 'fr'
+  | 'es'
+  | 'it'
+  | 'pt'
+  | 'nl'
+  | 'pl'
+  | 'sv';
+
+export const LOCALES: readonly Locale[] = [
+  'en',
+  'zh-Hant',
+  'de',
+  'fr',
+  'es',
+  'it',
+  'pt',
+  'nl',
+  'pl',
+  'sv',
+] as const;
 
 export type ThemeMode = 'warm-light' | 'warm-dark' | 'system';
 
@@ -47,7 +70,13 @@ export type EventType =
   | 'appointment'
   | 'reminder'
   | 'note'
-  | 'indicator';
+  | 'indicator'
+  | 'feed'
+  | 'diaper'
+  | 'sleep'
+  | 'pump'
+  | 'tummy'
+  | 'spitup';
 
 export type Recurrence = 'none' | 'daily' | 'weekly';
 
@@ -65,7 +94,144 @@ export type IndicatorKind =
   | 'temperature'
   | 'fundal_height'
   | 'kick_count'
+  | 'length'
+  | 'head_circumference'
   | 'custom';
+
+export type BabySex = 'girl' | 'boy' | 'unspecified';
+
+export type BabySkinTone = 'fair' | 'light' | 'medium' | 'tan' | 'deep';
+export type BabyHairColor =
+  | 'black'
+  | 'dark_brown'
+  | 'brown'
+  | 'blonde'
+  | 'red'
+  | 'none';
+
+export const BABY_SKIN_TONES: readonly BabySkinTone[] = [
+  'fair',
+  'light',
+  'medium',
+  'tan',
+  'deep',
+] as const;
+
+export const BABY_HAIR_COLORS: readonly BabyHairColor[] = [
+  'black',
+  'dark_brown',
+  'brown',
+  'blonde',
+  'red',
+  'none',
+] as const;
+
+export type FeedMethod = 'breast' | 'bottle' | 'formula';
+export type FeedSide = 'left' | 'right' | 'both';
+export type DiaperKind = 'wet' | 'dirty' | 'mixed' | 'dry';
+
+export type FeedDetails = {
+  method: FeedMethod;
+  side?: FeedSide;
+  durationMinutes?: number;
+  amountMl?: number;
+};
+
+export type DiaperDetails = {
+  kind: DiaperKind;
+};
+
+export type SleepDetails = {
+  /** ISO datetime when sleep ended. */
+  endedAt?: string;
+  ongoing?: boolean;
+};
+
+export type PumpDetails = {
+  side?: FeedSide;
+  durationMinutes?: number;
+  amountMl?: number;
+};
+
+export type TummyDetails = {
+  durationMinutes?: number;
+  endedAt?: string;
+  ongoing?: boolean;
+};
+
+export type SpitupAmount = 'small' | 'medium' | 'large';
+
+export type SpitupDetails = {
+  amount?: SpitupAmount;
+};
+
+/** Born-baby profile (siblings / twins = multiple records). */
+export type BabyProfile = {
+  id: string;
+  name: string;
+  birthDate: string;
+  birthTime?: string;
+  sex?: BabySex;
+  birthWeightKg?: number;
+  birthLengthCm?: number;
+  skinTone?: BabySkinTone;
+  hairColor?: BabyHairColor;
+  /** Completed gestational weeks at birth (e.g. 34). Used for corrected age
+   * when born before 37 weeks. Term babies can leave this empty.
+   */
+  gestationalWeeksAtBirth?: number;
+  /** Pre-selected feeding method for quick logging (breast, bottle, formula). */
+  defaultFeedMethod?: FeedMethod;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** 5-1-1 / 4-1-1 / custom “when to go” helper (informational). */
+export type LaborRulePreset = '511' | '411' | 'custom';
+
+/** Whether the labor timer card appears on Home. */
+export type LaborHomeMode = 'auto' | 'on' | 'off';
+
+export const LABOR_HOME_MODES: readonly LaborHomeMode[] = [
+  'auto',
+  'on',
+  'off',
+] as const;
+
+/** Default week to surface the labor timer in Auto mode. */
+export const DEFAULT_LABOR_HOME_WEEK = 37;
+
+export type LaborRule = {
+  /** Start-to-start gap, minutes. */
+  intervalMinutes: number;
+  /** How long each wave lasts, minutes. */
+  durationMinutes: number;
+  /** How long that pattern should hold, minutes. */
+  sustainedMinutes: number;
+};
+
+export type Contraction = {
+  id: string;
+  startAt: string;
+  endAt?: string;
+  intensity?: number;
+};
+
+export type LaborSession = {
+  id: string;
+  startedAt: string;
+  endedAt?: string;
+  contractions: Contraction[];
+  notes?: string;
+  rulePreset: LaborRulePreset;
+  rule: LaborRule;
+  notifiedRuleMet?: boolean;
+  /** Born baby this labor led to, if the user linked them. */
+  babyId?: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type PregnancyProfile = {
   method: ProfileMethod;
@@ -101,6 +267,25 @@ export type CalendarEvent = {
   notes?: string;
   notifyMinutesBefore?: number[];
   medicineKey?: string;
+  /** When set, this log belongs to a born baby (not the pregnancy diary). */
+  babyId?: string;
+  /** Present when type === 'feed'. */
+  feed?: FeedDetails;
+  /** Present when type === 'diaper'. */
+  diaper?: DiaperDetails;
+  /** Present when type === 'sleep'. */
+  sleep?: SleepDetails;
+  /** Present when type === 'pump'. */
+  pump?: PumpDetails;
+  /** Present when type === 'tummy'. */
+  tummy?: TummyDetails;
+  /** Present when type === 'spitup'. */
+  spitup?: SpitupDetails;
+  /**
+   * Stable care-plan id (e.g. well-baby visit) so generating reminders
+   * is idempotent per baby.
+   */
+  careKey?: string;
   /** Present when type === 'indicator'. */
   indicator?: IndicatorReading;
   /**
@@ -127,6 +312,11 @@ export type AskContextPrefs = {
   weight: boolean;
   readings: boolean;
   appointments: boolean;
+  babyAge: boolean;
+  babyFeeds: boolean;
+  babyDiapers: boolean;
+  babySleep: boolean;
+  babyWeight: boolean;
 };
 
 export type AiSettings = {
@@ -144,13 +334,45 @@ export type AiSettings = {
   contextPrefs?: Partial<AskContextPrefs>;
 };
 
+export type HomeMode = 'pregnancy' | 'baby';
+
 export type AppSettings = {
   locale: Locale;
   theme: ThemeMode;
   /** Preferred pregnancy-week label style (default: weeks_days). */
   gestationalDisplay?: GestationalDisplayStyle;
-  /** Home fruit mascot (default on). */
+  /** Home fruit mascot during pregnancy (default on). */
   showMascot?: boolean;
+  /** Born-baby head mascot on Baby / postpartum Home (default on). */
+  showBabyMascot?: boolean;
+  /**
+   * Home screen display option:
+   * - 'pregnancy': Home shows pregnancy tracker. If babies exist, Baby tab appears in menu.
+   * - 'baby': Home shows baby care. Baby tab is omitted from menu to prevent duplication.
+   */
+  homeMode?: HomeMode;
+  /**
+   * Show the Baby tab when at least one born-baby profile exists.
+   * Tab is hidden if this is off, even if babies are stored.
+   */
+  babyCareEnabled?: boolean;
+  /** Last selected born baby (multi-baby / twins). */
+  activeBabyId?: string;
+  /**
+   * After birth: hide week tracker, gestational calendar view, and
+   * pregnancy-only Home chrome. Calendar still holds one diary for both.
+   */
+  hidePregnancy?: boolean;
+  /** Labor “when to go” helper: 5-1-1, 4-1-1, or custom numbers. */
+  laborRulePreset?: LaborRulePreset;
+  laborRuleCustom?: LaborRule;
+  /**
+   * Home labor card: auto (from week), always on, or hidden.
+   * An in-progress session always shows on Home.
+   */
+  laborHomeMode?: LaborHomeMode;
+  /** Gestational week to start showing the Home labor card in Auto mode. */
+  laborHomeFromWeek?: number;
   ai: AiSettings;
   notificationsEnabled: boolean;
 };
@@ -233,6 +455,8 @@ export type DataCategory =
   | 'events'
   | 'settings'
   | 'askHistory'
+  | 'babies'
+  | 'labor'
   | 'all';
 
 

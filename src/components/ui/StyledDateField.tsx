@@ -46,7 +46,7 @@ function formatDisplay(iso: string, locale: string): string {
   const d = parseIso(iso);
   if (!d) return '';
   try {
-    return d.toLocaleDateString(locale.startsWith('zh') ? 'zh-Hant' : 'en', {
+    return d.toLocaleDateString(locale.startsWith('zh') ? 'zh-Hant' : locale || 'en', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -100,14 +100,20 @@ export function StyledDateField({
     return out;
   }, [viewMonth]);
 
-  const monthTitle = viewMonth.toLocaleDateString(
-    locale.startsWith('zh') ? 'zh-Hant' : 'en',
-    { month: 'long', year: 'numeric' }
-  );
+  const dateLocale = locale.startsWith('zh') ? 'zh-Hant' : locale || 'en';
+  const monthTitle = viewMonth.toLocaleDateString(dateLocale, {
+    month: 'long',
+    year: 'numeric',
+  });
 
-  const weekdays = locale.startsWith('zh')
-    ? ['一', '二', '三', '四', '五', '六', '日']
-    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekdays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(Date.UTC(2021, 0, 4 + i));
+    try {
+      return d.toLocaleDateString(dateLocale, { weekday: 'short', timeZone: 'UTC' });
+    } catch {
+      return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]!;
+    }
+  });
 
   const isDisabled = (d: Date) => {
     const t = d.getTime();

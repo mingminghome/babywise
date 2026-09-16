@@ -17,6 +17,8 @@ export const INDICATORS: IndicatorMeta[] = [
   { kind: 'temperature', defaultUnit: '°C' },
   { kind: 'fundal_height', defaultUnit: 'cm' },
   { kind: 'kick_count', defaultUnit: 'kicks' },
+  { kind: 'length', defaultUnit: 'cm' },
+  { kind: 'head_circumference', defaultUnit: 'cm' },
   { kind: 'custom', defaultUnit: '' },
 ];
 
@@ -31,6 +33,8 @@ export function indicatorLabel(kind: IndicatorKind, locale: Locale): string {
     temperature: ['Temperature', '體溫'],
     fundal_height: ['Fundal height', '宮底高度'],
     kick_count: ['Kick count', '胎動次數'],
+    length: ['Length', '身長'],
+    head_circumference: ['Head circumference', '頭圍'],
     custom: ['Custom', '自訂'],
   };
   return zh ? map[kind][1] : map[kind][0];

@@ -1,21 +1,41 @@
 import { DEFAULT_ASK_CONTEXT, mergeContextFlags } from '../ai/askContext';
+import { clampLaborHomeWeek, DEFAULT_LABOR_RULE, resolveLaborHomeMode } from '../labor/engine';
 import type {
   AiProviderId,
   AppSettings,
   AskHistoryItem,
+  BabyProfile,
   CalendarEvent,
   DataCategory,
   GestationalDisplayStyle,
+  LaborRulePreset,
+  LaborSession,
+  Locale,
   PregnancyProfile,
 } from '../types';
-import { AI_PROVIDERS, GESTATIONAL_DISPLAY_STYLES } from '../types';
+import {
+  AI_PROVIDERS,
+  DEFAULT_LABOR_HOME_WEEK,
+  GESTATIONAL_DISPLAY_STYLES,
+  LOCALES,
+} from '../types';
 import { STORAGE_KEYS, STORAGE_PREFIX } from './keys';
+
+const LABOR_PRESETS: readonly LaborRulePreset[] = ['511', '411', 'custom'];
 
 const DEFAULT_SETTINGS: AppSettings = {
   locale: 'en',
   theme: 'warm-light',
   gestationalDisplay: 'weeks_days',
   showMascot: true,
+  showBabyMascot: true,
+  homeMode: 'pregnancy',
+  babyCareEnabled: false,
+  hidePregnancy: false,
+  laborRulePreset: '511',
+  laborRuleCustom: { ...DEFAULT_LABOR_RULE },
+  laborHomeMode: 'auto',
+  laborHomeFromWeek: DEFAULT_LABOR_HOME_WEEK,
   ai: {
     provider: 'gemini',
     contextPrefs: { ...DEFAULT_ASK_CONTEXT },
@@ -23,6 +43,18 @@ const DEFAULT_SETTINGS: AppSettings = {
   /** Default on; browser permission still required to show alerts. */
   notificationsEnabled: true,
 };
+
+function normalizeLocale(raw: unknown): Locale {
+  const s = String(raw ?? '');
+  if ((LOCALES as readonly string[]).includes(s)) return s as Locale;
+  return 'en';
+}
+
+function normalizeLaborPreset(raw: unknown): LaborRulePreset {
+  const s = String(raw ?? '');
+  if ((LABOR_PRESETS as readonly string[]).includes(s)) return s as LaborRulePreset;
+  return '511';
+}
 
 function normalizeGestationalDisplay(raw: unknown): GestationalDisplayStyle {
   const s = String(raw ?? '');
@@ -79,13 +111,29 @@ export function saveEvents(events: CalendarEvent[]): void {
 export function getSettings(): AppSettings {
   const stored = readJson<Partial<AppSettings> | null>(STORAGE_KEYS.settings, null);
   if (!stored) return getDefaultSettings();
+  const base = getDefaultSettings();
   return {
-    ...getDefaultSettings(),
+    ...base,
     ...stored,
     gestationalDisplay: normalizeGestationalDisplay(stored.gestationalDisplay),
     showMascot: stored.showMascot !== false,
+    showBabyMascot: stored.showBabyMascot !== false,
+    homeMode: stored.homeMode === 'baby' || stored.hidePregnancy === true ? 'baby' : 'pregnancy',
+    locale: normalizeLocale(stored.locale),
+    babyCareEnabled: stored.babyCareEnabled === true,
+    hidePregnancy: stored.hidePregnancy === true,
+    activeBabyId:
+      typeof stored.activeBabyId === 'string' && stored.activeBabyId
+        ? stored.activeBabyId
+        : undefined,
+    laborRulePreset: normalizeLaborPreset(stored.laborRulePreset),
+    laborRuleCustom: stored.laborRuleCustom
+      ? { ...DEFAULT_LABOR_RULE, ...stored.laborRuleCustom }
+      : { ...DEFAULT_LABOR_RULE },
+    laborHomeMode: resolveLaborHomeMode(stored.laborHomeMode),
+    laborHomeFromWeek: clampLaborHomeWeek(stored.laborHomeFromWeek),
     ai: {
-      ...getDefaultSettings().ai,
+      ...base.ai,
       ...stored.ai,
       provider: normalizeProvider(stored.ai?.provider),
       contextPrefs: mergeContextFlags(stored.ai?.contextPrefs),
@@ -103,6 +151,28 @@ export function getAskHistory(): AskHistoryItem[] {
 
 export function saveAskHistory(items: AskHistoryItem[]): void {
   writeJson(STORAGE_KEYS.askHistory, items.slice(0, 30));
+}
+
+export function getBabies(): BabyProfile[] {
+  const raw = readJson<BabyProfile[]>(STORAGE_KEYS.babies, []);
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((b) => b && typeof b.id === 'string' && typeof b.name === 'string');
+}
+
+export function saveBabies(babies: BabyProfile[]): void {
+  writeJson(STORAGE_KEYS.babies, babies);
+}
+
+export function getLaborSessions(): LaborSession[] {
+  const raw = readJson<LaborSession[]>(STORAGE_KEYS.laborSessions, []);
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (s) => s && typeof s.id === 'string' && Array.isArray(s.contractions)
+  );
+}
+
+export function saveLaborSessions(sessions: LaborSession[]): void {
+  writeJson(STORAGE_KEYS.laborSessions, sessions);
 }
 
 /** List every babywise_v1_* key currently in localStorage. */
@@ -142,6 +212,12 @@ export function clearLocalData(category: DataCategory = 'all'): string[] {
     case 'askHistory':
       removeKey(STORAGE_KEYS.askHistory);
       break;
+    case 'babies':
+      removeKey(STORAGE_KEYS.babies);
+      break;
+    case 'labor':
+      removeKey(STORAGE_KEYS.laborSessions);
+      break;
     case 'all':
     default: {
       // Full clean: known keys + any stray babywise_v1_* keys
@@ -177,6 +253,8 @@ export function summarizeLocalData(): {
   hasProfile: boolean;
   eventCount: number;
   askCount: number;
+  babyCount: number;
+  laborCount: number;
   hasCustomSettings: boolean;
   keyCount: number;
 } {
@@ -184,6 +262,8 @@ export function summarizeLocalData(): {
     hasProfile: getProfile() !== null,
     eventCount: getEvents().length,
     askCount: getAskHistory().length,
+    babyCount: getBabies().length,
+    laborCount: getLaborSessions().length,
     hasCustomSettings: localStorage.getItem(STORAGE_KEYS.settings) !== null,
     keyCount: listBabywiseKeys().length,
   };

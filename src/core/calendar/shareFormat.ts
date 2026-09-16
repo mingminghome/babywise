@@ -89,6 +89,12 @@ export function formatEventsForShare(opts: ShareFormatOpts): string {
     'reminder',
     'note',
     'indicator',
+    'feed',
+    'pump',
+    'diaper',
+    'sleep',
+    'tummy',
+    'spitup',
   ] as const;
   const byType = new Map<string, CalendarEvent[]>();
   for (const e of events) {

@@ -77,6 +77,8 @@ export async function askSafety(req: AskRequest): Promise<AskResponse> {
   try {
     const body: Record<string, unknown> = {
       locale: req.locale,
+      mode: req.mode,
+      babyName: req.babyName,
       pregnancyWeek: req.pregnancyWeek,
       text: req.text,
       contextNotes: req.contextNotes,

@@ -1,21 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronUp, Plus } from 'lucide-react';
+import { ChevronUp, Plus, X } from 'lucide-react';
 import { DayAgenda } from './DayAgenda';
-import { eventTypeIcon } from './eventIcons';
+import { eventTypeIcon, QuickLogGlyph } from './eventIcons';
 import { MedicineAutocomplete } from './MedicineAutocomplete';
 import { StyledCheckbox } from './ui/StyledCheckbox';
 import { StyledDateField } from './ui/StyledDateField';
 import { StyledSelect } from './ui/StyledSelect';
 import { findDuplicateMedicinePlan } from '../core/calendar/duplicates';
+import { activeBaby } from '../core/baby/logs';
 import {
+  BABY_LOG_TYPES,
   CALENDAR_VIEWS,
   completeActionKey,
   EVENT_TYPES,
+  filterEventsForScope,
+  isBabyLogType,
   localHm,
   parseTimesInput,
   preferredCompleteKind,
   statusLabelKey,
+  type CalendarScope,
   type CalendarViewMode,
 } from '../core/calendar/meta';
 import { groupByBabyWeek, eventsForDate } from '../core/calendar/resolve';
@@ -25,8 +30,7 @@ import {
   sameMonth,
   startOfWeekMonday,
   weekDaysFrom,
-  WEEKDAY_LABELS_EN,
-  WEEKDAY_LABELS_ZH,
+  weekdayLabelsFor,
   addMonths,
 } from '../core/calendar/grid';
 import { getCompletion } from '../core/calendar/store';
@@ -35,7 +39,9 @@ import {
   getIndicatorMeta,
   INDICATORS,
 } from '../core/indicators/catalog';
+import { localeTag } from '../core/i18n';
 import { todayIso, addDays } from '../core/pregnancy/engine';
+import { BabyLogSheet, type BabyLogMode } from './BabyLogSheet';
 import type { AppState } from '../hooks/useAppState';
 import type {
   CalendarEvent,
@@ -66,6 +72,7 @@ const emptyForm = {
   indicatorCustomLabel: '',
   doseLabel: '',
   takenTime: '',
+  babyId: '',
 };
 
 function getScrollMain(): HTMLElement | null {
@@ -80,8 +87,15 @@ export function CalendarScreen({ state }: { state: AppState }) {
     markComplete,
     profile,
     settings,
+    babies,
     t,
   } = state;
+  const hidePreg = settings.hidePregnancy === true;
+  const hasBabies = babies.length > 0 && settings.babyCareEnabled === true;
+  const currentBaby = activeBaby(babies, settings.activeBabyId);
+  const [babyLogEvent, setBabyLogEvent] = useState<CalendarEvent | null>(null);
+  const [babyLogNew, setBabyLogNew] = useState<BabyLogMode | null>(null);
+  const [scope, setScope] = useState<CalendarScope>('all');
   const [view, setView] = useState<CalendarViewMode>('month');
   const [anchor, setAnchor] = useState(todayIso());
   const [selectedDay, setSelectedDay] = useState(todayIso());
@@ -119,17 +133,31 @@ export function CalendarScreen({ state }: { state: AppState }) {
 
   const weekDates = useMemo(() => weekDaysFrom(anchor), [anchor]);
   const monthCells = useMemo(() => daysInMonthGrid(anchor), [anchor]);
-  const weekdayLabels =
-    settings.locale === 'zh-Hant' ? WEEKDAY_LABELS_ZH : WEEKDAY_LABELS_EN;
+  const weekdayLabels = weekdayLabelsFor(localeTag(settings.locale));
 
+  const scopedEvents = useMemo(
+    () => filterEventsForScope(events, scope),
+    [events, scope]
+  );
+  const dateProfile = hidePreg ? null : profile;
   const todayList = useMemo(
-    () => eventsForDate(events, todayIso(), profile),
-    [events, profile]
+    () => eventsForDate(scopedEvents, todayIso(), dateProfile),
+    [scopedEvents, dateProfile]
   );
   const selectedList = useMemo(
-    () => eventsForDate(events, selectedDay, profile),
-    [events, selectedDay, profile]
+    () => eventsForDate(scopedEvents, selectedDay, dateProfile),
+    [scopedEvents, selectedDay, dateProfile]
   );
+  const calViews = hidePreg
+    ? CALENDAR_VIEWS.filter((v) => v.id !== 'babyWeek')
+    : CALENDAR_VIEWS;
+  const logBabyId =
+    (scope !== 'all' && scope !== 'mother' ? scope : undefined) ||
+    currentBaby?.id;
+
+  useEffect(() => {
+    if (hidePreg && view === 'babyWeek') setView('month');
+  }, [hidePreg, view]);
 
   const scrollToTop = () => {
     getScrollMain()?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -152,6 +180,12 @@ export function CalendarScreen({ state }: { state: AppState }) {
           : { type: 'medicine' }
         : preset;
 
+    if (isBabyLogType(p.type)) {
+      if (!logBabyId) return;
+      setBabyLogNew(p.type as BabyLogMode);
+      return;
+    }
+
     setEditId(undefined);
     const isInd = p.type === 'indicator';
     const isMedLog = p.type === 'medicine_log';
@@ -165,18 +199,23 @@ export function CalendarScreen({ state }: { state: AppState }) {
       type: p.type,
       recurrence: isInd || isMedLog ? 'none' : 'daily',
       timesOfDay: '',
-      scheduleMode: isInd || isMedLog ? 'date' : 'both',
+      scheduleMode: hidePreg || isInd || isMedLog ? 'date' : 'both',
       indicatorKind: kind,
       indicatorUnit: meta.defaultUnit,
       indicatorValue: '',
       takenTime: '',
       doseLabel: '',
       notify: false,
+      babyId: hidePreg ? logBabyId ?? '' : '',
     });
     setSheetOpen(true);
   };
 
   const openEdit = (e: CalendarEvent) => {
+    if (isBabyLogType(e.type) || (e.type === 'indicator' && e.babyId)) {
+      setBabyLogEvent(e);
+      return;
+    }
     setEditId(e.id);
     const hasWeek = e.fromBabyWeek != null || e.toBabyWeek != null;
     const hasDate = !!e.startAt || !!e.endAt;
@@ -209,6 +248,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
       indicatorCustomLabel: ind?.customLabel ?? '',
       doseLabel: e.doseLabel ?? '',
       takenTime: taken,
+      babyId: e.babyId ?? '',
     });
     setSheetOpen(true);
   };
@@ -235,6 +275,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
       form.scheduleMode === 'date' ||
       form.scheduleMode === 'both';
     const useWeek =
+      !hidePreg &&
       !isIndicator &&
       !isMedLog &&
       (form.scheduleMode === 'week' || form.scheduleMode === 'both');
@@ -341,6 +382,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
           ? form.doseLabel.trim() || undefined
           : undefined,
       takenAt: isIndicator || isMedLog ? takenAt : undefined,
+      babyId: form.babyId || undefined,
     });
     setDupConfirmName(null);
     setSheetOpen(false);
@@ -430,7 +472,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
           role="tablist"
           aria-label={t('calendar.title')}
         >
-          {CALENDAR_VIEWS.map(({ id, labelKey }) => (
+          {calViews.map(({ id, labelKey }) => (
             <button
               key={id}
               type="button"
@@ -451,29 +493,76 @@ export function CalendarScreen({ state }: { state: AppState }) {
           ))}
         </div>
 
+        {hasBabies && (
+          <div className="cal-scope" role="tablist" aria-label={t('calendar.scopeWho')}>
+            <button
+              type="button"
+              className={`chip ${scope === 'all' ? 'active' : ''}`}
+              onClick={() => setScope('all')}
+            >
+              {t('calendar.scopeAll')}
+            </button>
+            {!hidePreg && (
+              <button
+                type="button"
+                className={`chip ${scope === 'mother' ? 'active' : ''}`}
+                onClick={() => setScope('mother')}
+              >
+                {t('calendar.scopePregnancy')}
+              </button>
+            )}
+            {babies.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                className={`chip ${scope === b.id ? 'active' : ''}`}
+                onClick={() => setScope(b.id)}
+              >
+                {b.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         <section className="quick-log-card" aria-label={t('calendar.quickLog')}>
           <div className="quick-log-head">
             <h2 className="quick-log-title">{t('calendar.quickLog')}</h2>
           </div>
+          {hasBabies && (
+            <>
+              <p className="quick-log-kicker">{t('calendar.quickBaby')}</p>
+              <div className="quick-log-grid is-care">
+                {BABY_LOG_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      className={`quick-log-btn is-${type}`}
+                      onClick={() => openNew({ type })}
+                    >
+                      <QuickLogGlyph type={type} />
+                      <span className="quick-log-label">
+                        {t(`calendar.types.${type}`)}
+                      </span>
+                    </button>
+                ))}
+              </div>
+              <p className="quick-log-kicker">{t('calendar.quickDiary')}</p>
+            </>
+          )}
           <div className="quick-log-grid">
-            {EVENT_TYPES.map((type) => {
-              const Icon = eventTypeIcon(type);
-              return (
+            {EVENT_TYPES.map((type) => (
                 <button
                   key={type}
                   type="button"
                   className={`quick-log-btn is-${type}`}
                   onClick={() => openNew({ type })}
                 >
-                  <span className={`quick-log-icon is-${type}`} aria-hidden>
-                    <Icon size={18} strokeWidth={2.25} />
-                  </span>
+                  <QuickLogGlyph type={type} />
                   <span className="quick-log-label">
                     {t(`calendar.types.${type}`)}
                   </span>
                 </button>
-              );
-            })}
+            ))}
           </div>
         </section>
       </div>
@@ -494,7 +583,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
           </button>
           <strong className="cal-nav-title">
             {view === 'month'
-              ? formatMonthTitle(anchor, settings.locale)
+              ? formatMonthTitle(anchor, localeTag(settings.locale))
               : `${weekDates[0]} – ${weekDates[6]}`}
           </strong>
           <button
@@ -516,7 +605,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
         {view === 'today' && (
           <DayAgenda
             items={todayList}
-            allEvents={events}
+            allEvents={scopedEvents}
             dayIso={todayIso()}
             locale={settings.locale}
             t={t}
@@ -530,7 +619,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
         {view === 'week' && (
           <div className="week-grid">
             {weekDates.map((d, i) => {
-              const dayEvents = eventsForDate(events, d, profile);
+              const dayEvents = eventsForDate(scopedEvents, d, dateProfile);
               const isSel = d === selectedDay;
               const isToday = d === todayIso();
               return (
@@ -568,7 +657,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
             <div className="month-grid">
               {monthCells.map((d) => {
                 const inMonth = sameMonth(d, anchor);
-                const dayEvents = eventsForDate(events, d, profile);
+                const dayEvents = eventsForDate(scopedEvents, d, dateProfile);
                 const isSel = d === selectedDay;
                 const isToday = d === todayIso();
                 return (
@@ -608,7 +697,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
             ) : (
               <DayAgenda
                 items={selectedList}
-                allEvents={events}
+                allEvents={scopedEvents}
                 dayIso={selectedDay}
                 locale={settings.locale}
                 t={t}
@@ -622,10 +711,10 @@ export function CalendarScreen({ state }: { state: AppState }) {
 
         {view === 'babyWeek' && (
           <>
-            {events.length === 0 ? (
+            {scopedEvents.length === 0 ? (
               <p className="muted">{t('calendar.empty')}</p>
             ) : (
-              [...groupByBabyWeek(events, profile).entries()].map(
+              [...groupByBabyWeek(scopedEvents, profile).entries()].map(
                 ([week, list]) => (
                   <div key={week} className="cal-week-group">
                     <div className="cal-week-group-title muted">
@@ -658,7 +747,11 @@ export function CalendarScreen({ state }: { state: AppState }) {
         type="button"
         className="fab"
         aria-label={t('calendar.add')}
-        onClick={() => openNew({ type: 'medicine_log' })}
+        onClick={() =>
+          openNew({
+            type: hidePreg && hasBabies ? 'feed' : 'medicine_log',
+          })
+        }
       >
         <Plus size={28} />
       </button>
@@ -674,36 +767,114 @@ export function CalendarScreen({ state }: { state: AppState }) {
         >
           <div className="sheet" role="dialog" aria-modal="true">
             <div className="sheet-handle" />
-            <h2 className="sheet-title">
-              {editId ? t('calendar.edit') : t('calendar.add')}
-            </h2>
-
-            <div className="field">
-              <label>{t('calendar.type')}</label>
-              <div className="chip-row">
-                {EVENT_TYPES.map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    className={`chip ${form.type === type ? 'active' : ''}`}
-                    onClick={() =>
-                      setForm((f) => ({
-                        ...f,
-                        type,
-                        recurrence: type === 'indicator' ? 'none' : f.recurrence,
-                        scheduleMode:
-                          type === 'indicator' ? 'date' : f.scheduleMode,
-                      }))
-                    }
-                  >
-                    {t(`calendar.types.${type}`)}
-                  </button>
-                ))}
+            <div className="sheet-header">
+              <div className="sheet-header-copy">
+                <h2 className="sheet-title">
+                  {editId ? t('calendar.edit') : t('calendar.add')}
+                </h2>
+                <p className="sheet-subtitle">
+                  {t(`calendar.types.${form.type}`)}
+                </p>
               </div>
+              <button
+                type="button"
+                className="sheet-close-btn"
+                aria-label={t('calendar.cancel')}
+                onClick={() => setSheetOpen(false)}
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            {form.type === 'indicator' ? (
-              <>
+            <div className="field-group">
+              {hasBabies && (
+                <div className="field">
+                  <label>{t('calendar.forWhom')}</label>
+                  <div className="chip-row">
+                    {!hidePreg && (
+                      <button
+                        type="button"
+                        className={`chip ${form.babyId === '' ? 'active' : ''}`}
+                        onClick={() => setForm((f) => ({ ...f, babyId: '' }))}
+                      >
+                        {t('calendar.forPregnancy')}
+                      </button>
+                    )}
+                    {babies.map((b) => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        className={`chip ${form.babyId === b.id ? 'active' : ''}`}
+                        onClick={() => setForm((f) => ({ ...f, babyId: b.id }))}
+                      >
+                        {b.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="field">
+                <label>{t('calendar.type')}</label>
+                <div className="chip-row">
+                  {EVENT_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      className={`chip ${form.type === type ? 'active' : ''}`}
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          type,
+                          recurrence: type === 'indicator' ? 'none' : f.recurrence,
+                          scheduleMode:
+                            type === 'indicator' ? 'date' : f.scheduleMode,
+                        }))
+                      }
+                    >
+                      {t(`calendar.types.${type}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {form.type !== 'indicator' && (
+                <div className="field">
+                  <label>{t('calendar.titleLabel')}</label>
+                  <MedicineAutocomplete
+                    value={form.title}
+                    locale={settings.locale}
+                    placeholder={t('calendar.titlePlaceholder')}
+                    onChange={(title, med) =>
+                      setForm((f) => ({
+                        ...f,
+                        title,
+                        medicineKey: med?.key ?? f.medicineKey,
+                        type: med && f.type !== 'medicine_log' ? 'medicine' : f.type,
+                      }))
+                    }
+                  />
+                </div>
+              )}
+
+              {(form.type === 'medicine' || form.type === 'reminder' || form.type === 'medicine_log') && (
+                <div className="field">
+                  <label>{t('calendar.doseLabel')}</label>
+                  <input
+                    type="text"
+                    value={form.doseLabel}
+                    placeholder={t('calendar.dosePlaceholder')}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, doseLabel: e.target.value }))
+                    }
+                  />
+                </div>
+              )}
+            </div>
+
+            {form.type === 'indicator' && (
+              <div className="field-group">
+                <div className="field-group-title">{t('calendar.types.indicator')}</div>
                 <StyledSelect
                   label={t('calendar.indicatorKind')}
                   value={form.indicatorKind}
@@ -805,38 +976,15 @@ export function CalendarScreen({ state }: { state: AppState }) {
                     {t('calendar.readingTimeHint')}
                   </p>
                 </div>
-              </>
-            ) : form.type === 'medicine_log' ? (
-              <>
-                <p className="muted" style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+              </div>
+            )}
+
+            {form.type === 'medicine_log' && (
+              <div className="field-group">
+                <div className="field-group-title">{t('calendar.types.medicine_log')}</div>
+                <p className="muted" style={{ fontSize: '0.85rem' }}>
                   {t('calendar.medicineLogHint')}
                 </p>
-                <div className="field">
-                  <label>{t('calendar.titleLabel')}</label>
-                  <MedicineAutocomplete
-                    value={form.title}
-                    locale={settings.locale}
-                    placeholder={t('calendar.titlePlaceholder')}
-                    onChange={(title, med) =>
-                      setForm((f) => ({
-                        ...f,
-                        title,
-                        medicineKey: med?.key ?? f.medicineKey,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="field">
-                  <label>{t('calendar.doseLabel')}</label>
-                  <input
-                    type="text"
-                    value={form.doseLabel}
-                    placeholder={t('calendar.dosePlaceholder')}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, doseLabel: e.target.value }))
-                    }
-                  />
-                </div>
                 <StyledDateField
                   label={t('calendar.startDate')}
                   value={form.startAt}
@@ -856,49 +1004,23 @@ export function CalendarScreen({ state }: { state: AppState }) {
                     {t('calendar.takenTimeOptional')}
                   </p>
                 </div>
-              </>
-            ) : (
-              <>
-                <div className="field">
-                  <label>{t('calendar.titleLabel')}</label>
-                  <MedicineAutocomplete
-                    value={form.title}
-                    locale={settings.locale}
-                    placeholder={t('calendar.titlePlaceholder')}
-                    onChange={(title, med) =>
-                      setForm((f) => ({
-                        ...f,
-                        title,
-                        medicineKey: med?.key ?? f.medicineKey,
-                        type: med && f.type !== 'medicine_log' ? 'medicine' : f.type,
-                      }))
-                    }
-                  />
-                </div>
+              </div>
+            )}
 
-                {(form.type === 'medicine' || form.type === 'reminder') && (
-                  <div className="field">
-                    <label>{t('calendar.doseLabel')}</label>
-                    <input
-                      type="text"
-                      value={form.doseLabel}
-                      placeholder={t('calendar.dosePlaceholder')}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, doseLabel: e.target.value }))
-                      }
-                    />
-                  </div>
-                )}
-
+            {form.type !== 'indicator' && form.type !== 'medicine_log' && (
+              <div className="field-group">
+                <div className="field-group-title">{t('calendar.scheduleMode')}</div>
                 <div className="field">
                   <label>{t('calendar.scheduleMode')}</label>
                   <div className="chip-row">
                     {(
-                      [
-                        ['date', 'calendar.modeDate'],
-                        ['week', 'calendar.modeWeek'],
-                        ['both', 'calendar.modeBoth'],
-                      ] as const
+                      hidePreg
+                        ? ([['date', 'calendar.modeDate']] as const)
+                        : ([
+                            ['date', 'calendar.modeDate'],
+                            ['week', 'calendar.modeWeek'],
+                            ['both', 'calendar.modeBoth'],
+                          ] as const)
                     ).map(([id, key]) => (
                       <button
                         key={id}
@@ -984,7 +1106,6 @@ export function CalendarScreen({ state }: { state: AppState }) {
                       setForm((f) => ({
                         ...f,
                         timesOfDay: next,
-                        // No time → no notification
                         notify: has ? f.notify : false,
                       }));
                     }}
@@ -1019,77 +1140,120 @@ export function CalendarScreen({ state }: { state: AppState }) {
                     {t('calendar.notifyNeedsTime')}
                   </p>
                 )}
-              </>
-            )}
-
-            <div className="field">
-              <label>{t('calendar.notes')}</label>
-              <textarea
-                value={form.notes}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, notes: e.target.value }))
-                }
-              />
-            </div>
-
-            {dupConfirmName && (
-              <div className="card-soft stack" style={{ marginBottom: '0.75rem' }}>
-                <p className="muted">
-                  {t('calendar.duplicateMedicine', { name: dupConfirmName })}
-                </p>
-                <div className="row-actions">
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => setDupConfirmName(null)}
-                  >
-                    {t('calendar.cancel')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => handleSave({ allowDuplicateMedicine: true })}
-                  >
-                    {t('calendar.save')}
-                  </button>
-                </div>
               </div>
             )}
 
-            <div className="row-actions">
-              {editId && (
+            <div className="field-group">
+              <div className="field">
+                <label>{t('calendar.notes')}</label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, notes: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="sheet-actions-sticky">
+              {dupConfirmName && (
+                <div className="card-soft stack" style={{ marginBottom: '0.5rem' }}>
+                  <p className="muted" style={{ fontSize: '0.85rem' }}>
+                    {t('calendar.duplicateMedicine', { name: dupConfirmName })}
+                  </p>
+                  <div className="sheet-actions-row">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setDupConfirmName(null)}
+                    >
+                      {t('calendar.cancel')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => handleSave({ allowDuplicateMedicine: true })}
+                    >
+                      {t('calendar.save')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="sheet-actions-row">
+                {editId && (
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => {
+                      removeEvent(editId);
+                      setSheetOpen(false);
+                    }}
+                  >
+                    {t('calendar.delete')}
+                  </button>
+                )}
                 <button
                   type="button"
-                  className="btn btn-danger"
+                  className="btn btn-ghost"
                   onClick={() => {
-                    removeEvent(editId);
+                    setDupConfirmName(null);
                     setSheetOpen(false);
                   }}
                 >
-                  {t('calendar.delete')}
+                  {t('calendar.cancel')}
                 </button>
-              )}
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => {
-                  setDupConfirmName(null);
-                  setSheetOpen(false);
-                }}
-              >
-                {t('calendar.cancel')}
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => handleSave()}
-              >
-                {t('calendar.save')}
-              </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleSave()}
+                >
+                  {t('calendar.save')}
+                </button>
+              </div>
             </div>
           </div>
         </div>,
         document.body
+      )}
+
+      {babyLogEvent && babyLogEvent.babyId && (
+        <BabyLogSheet
+          t={t}
+          locale={settings.locale}
+          babyId={babyLogEvent.babyId}
+          mode={babyLogEvent.type as BabyLogMode}
+          defaultFeedMethod={
+            babies.find((b) => b.id === babyLogEvent.babyId)?.defaultFeedMethod
+          }
+          editing={babyLogEvent}
+          onClose={() => setBabyLogEvent(null)}
+          onSave={(input) => {
+            saveEvent(input);
+            setBabyLogEvent(null);
+          }}
+          onDelete={(id) => {
+            removeEvent(id);
+            setBabyLogEvent(null);
+          }}
+        />
+      )}
+
+      {babyLogNew && logBabyId && (
+        <BabyLogSheet
+          t={t}
+          locale={settings.locale}
+          babyId={logBabyId}
+          mode={babyLogNew}
+          defaultFeedMethod={
+            babies.find((b) => b.id === logBabyId)?.defaultFeedMethod
+          }
+          onClose={() => setBabyLogNew(null)}
+          onSave={(input) => {
+            saveEvent(input);
+            setBabyLogNew(null);
+          }}
+        />
       )}
     </>
   );

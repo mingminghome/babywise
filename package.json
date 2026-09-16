@@ -1,7 +1,7 @@
 {
   "name": "babywise",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Local-first pregnancy companion: week tracker, calendar, and safety Ask",
   "license": "MIT",
   "type": "module",

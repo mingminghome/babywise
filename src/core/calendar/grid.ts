@@ -51,7 +51,7 @@ export function formatMonthTitle(isoDate: string, locale: string): string {
   const [y, m] = isoDate.split('-').map(Number);
   const d = new Date(y, (m ?? 1) - 1, 1);
   try {
-    return d.toLocaleDateString(locale.startsWith('zh') ? 'zh-Hant' : 'en', {
+    return d.toLocaleDateString(locale, {
       month: 'long',
       year: 'numeric',
     });
@@ -62,3 +62,15 @@ export function formatMonthTitle(isoDate: string, locale: string): string {
 
 export const WEEKDAY_LABELS_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const WEEKDAY_LABELS_ZH = ['一', '二', '三', '四', '五', '六', '日'];
+
+/** Monday-first short weekday names for the given BCP 47 tag. */
+export function weekdayLabelsFor(localeTag: string): string[] {
+  try {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(Date.UTC(2021, 0, 4 + i)); // Monday
+      return d.toLocaleDateString(localeTag, { weekday: 'short', timeZone: 'UTC' });
+    });
+  } catch {
+    return [...WEEKDAY_LABELS_EN];
+  }
+}

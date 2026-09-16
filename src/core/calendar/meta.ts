@@ -4,6 +4,7 @@
 import type { CalendarEvent, CompletionKind, EventType } from '../types';
 
 /** Canonical order for quick-log + type pickers. */
+/** Pregnancy calendar quick-log types (baby feed/diaper/sleep live on the Baby tab). */
 export const EVENT_TYPES: EventType[] = [
   'medicine_log',
   'medicine',
@@ -12,6 +13,38 @@ export const EVENT_TYPES: EventType[] = [
   'reminder',
   'note',
 ];
+
+export const BABY_LOG_TYPES: EventType[] = [
+  'feed',
+  'diaper',
+  'sleep',
+  'pump',
+  'tummy',
+  'spitup',
+];
+
+export function isBabyLogType(type: EventType): boolean {
+  return (
+    type === 'feed' ||
+    type === 'diaper' ||
+    type === 'sleep' ||
+    type === 'pump' ||
+    type === 'tummy' ||
+    type === 'spitup'
+  );
+}
+
+/** Filter the shared calendar: all, pregnancy-only, or one born baby. */
+export type CalendarScope = 'all' | 'mother' | string;
+
+export function filterEventsForScope(
+  events: CalendarEvent[],
+  scope: CalendarScope
+): CalendarEvent[] {
+  if (scope === 'all') return events;
+  if (scope === 'mother') return events.filter((e) => !e.babyId);
+  return events.filter((e) => e.babyId === scope);
+}
 
 export type CalendarViewMode = 'today' | 'week' | 'month' | 'babyWeek';
 

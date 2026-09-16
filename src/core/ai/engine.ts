@@ -12,6 +12,8 @@ import { buildWebAskPrompt } from './webAsk';
 export type EngineInput = {
   question: string;
   locale: Locale;
+  mode?: 'pregnancy' | 'baby';
+  babyName?: string;
   pregnancyWeek?: number | null;
   context?: AskContextBundle;
   include?: AskContextFlags;
@@ -40,6 +42,8 @@ export function engineBuildPrompt(input: EngineInput): string {
   return buildWebAskPrompt({
     text: input.question,
     locale: input.locale,
+    mode: input.mode,
+    babyName: input.babyName,
     pregnancyWeek: input.pregnancyWeek,
     context: input.context,
     include: input.include,
@@ -54,7 +58,7 @@ function buildContextNotes(input: EngineInput): string {
     .filter((l) => l.startsWith('- '))
     .map((l) => l.slice(2).trim())
     .filter(Boolean);
-  return bullets.join('\n').slice(0, 600);
+  return bullets.join('\n').slice(0, 1200);
 }
 
 /** In-app answer via Worker + selected AI provider. */
@@ -69,7 +73,9 @@ export async function engineRunAsk(input: EngineInput): Promise<EngineResult> {
   const provider = input.provider ?? 'gemini';
   const res = await askSafety({
     locale: input.locale,
-    pregnancyWeek: input.pregnancyWeek,
+    mode: input.mode,
+    babyName: input.babyName,
+    pregnancyWeek: input.mode === 'baby' ? undefined : input.pregnancyWeek,
     text: text || undefined,
     contextNotes: buildContextNotes(input) || undefined,
     provider,

@@ -1,8 +1,10 @@
+import { babyLogSummaryLines } from '../baby/recsPrompt';
 import { eventsForDate } from '../calendar/resolve';
 import { indicatorSeries } from '../indicators/series';
 import { formatWeekDay, getGestationalAge } from '../pregnancy/engine';
 import { todayIso } from '../pregnancy/engine';
 import type {
+  BabyProfile,
   CalendarEvent,
   Locale,
   PregnancyProfile,
@@ -16,7 +18,12 @@ export type AskContextKey =
   | 'takenToday'
   | 'weight'
   | 'readings'
-  | 'appointments';
+  | 'appointments'
+  | 'babyAge'
+  | 'babyFeeds'
+  | 'babyDiapers'
+  | 'babySleep'
+  | 'babyWeight';
 
 export type AskContextFlags = Record<AskContextKey, boolean>;
 
@@ -29,9 +36,39 @@ export const DEFAULT_ASK_CONTEXT: AskContextFlags = {
   weight: true,
   readings: true,
   appointments: true,
+  babyAge: true,
+  babyFeeds: true,
+  babyDiapers: true,
+  babySleep: true,
+  babyWeight: true,
 };
 
 export const ASK_CONTEXT_KEYS: AskContextKey[] = [
+  'week',
+  'dueDate',
+  'medicines',
+  'takenToday',
+  'weight',
+  'readings',
+  'appointments',
+  'babyAge',
+  'babyFeeds',
+  'babyDiapers',
+  'babySleep',
+  'babyWeight',
+];
+
+export const BABY_CONTEXT_KEYS: AskContextKey[] = [
+  'babyAge',
+  'babyFeeds',
+  'babyDiapers',
+  'babySleep',
+  'babyWeight',
+  'medicines',
+  'appointments',
+];
+
+export const PREGNANCY_CONTEXT_KEYS: AskContextKey[] = [
   'week',
   'dueDate',
   'medicines',
@@ -49,25 +86,37 @@ export type AskContextBundle = {
   weight?: string;
   readings?: string[];
   appointments?: string[];
+  babyAge?: string;
+  babyFeeds?: string[];
+  babyDiapers?: string[];
+  babySleep?: string[];
+  babyWeight?: string;
 };
 
-/** Pull live data from profile + calendar for prompt inclusion. */
+/** Pull live data from profile + calendar for prompt inclusion. Mode-aware. */
 export function collectAskContext(
   profile: PregnancyProfile | null,
   events: CalendarEvent[],
-  locale: Locale
+  locale: Locale,
+  opts?: {
+    baby?: BabyProfile | null;
+    mode?: 'pregnancy' | 'baby';
+  }
 ): AskContextBundle {
-  const ga = getGestationalAge(profile);
+  const isBabyMode = opts?.mode === 'baby';
+  const ga = !isBabyMode ? getGestationalAge(profile) : null;
   const today = todayIso();
   const isZh = locale === 'zh-Hant';
   const bundle: AskContextBundle = {};
 
-  if (ga && ga.totalDays >= 0) {
-    // Ask always uses plain weeks+days so the model sees a clear number pair.
-    bundle.week = formatWeekDay(ga.weeks, ga.days, locale, 'weeks_days');
-  }
-  if (ga?.dueDate || profile?.dueDate) {
-    bundle.dueDate = ga?.dueDate ?? profile?.dueDate;
+  if (!isBabyMode) {
+    if (ga && ga.totalDays >= 0) {
+      // Ask always uses plain weeks+days so the model sees a clear number pair.
+      bundle.week = formatWeekDay(ga.weeks, ga.days, locale, 'weeks_days');
+    }
+    if (ga?.dueDate || profile?.dueDate) {
+      bundle.dueDate = ga?.dueDate ?? profile?.dueDate;
+    }
   }
 
   // Ongoing medicine plans (type medicine, not finished)
@@ -105,37 +154,39 @@ export function collectAskContext(
   }
   if (taken.length) bundle.takenToday = [...new Set(taken)];
 
-  const weights = indicatorSeries(events, 'weight');
-  if (weights.length) {
-    const last = weights[weights.length - 1];
-    bundle.weight = isZh
-      ? `${last.value} kg（${last.date}）`
-      : `${last.value} kg (${last.date})`;
-  }
-
-  const readingKinds = [
-    'blood_pressure',
-    'heart_rate',
-    'blood_sugar',
-    'temperature',
-    'calories',
-    'fundal_height',
-    'kick_count',
-  ] as const;
-  const readingLines: string[] = [];
-  for (const kind of readingKinds) {
-    const series = indicatorSeries(events, kind);
-    if (!series.length) continue;
-    const last = series[series.length - 1];
-    if (kind === 'blood_pressure' && last.valueSecondary != null) {
-      readingLines.push(
-        `${kind}: ${last.value}/${last.valueSecondary} (${last.date})`
-      );
-    } else {
-      readingLines.push(`${kind}: ${last.value} (${last.date})`);
+  if (!isBabyMode) {
+    const weights = indicatorSeries(events, 'weight');
+    if (weights.length) {
+      const last = weights[weights.length - 1];
+      bundle.weight = isZh
+        ? `${last.value} kg（${last.date}）`
+        : `${last.value} kg (${last.date})`;
     }
+
+    const readingKinds = [
+      'blood_pressure',
+      'heart_rate',
+      'blood_sugar',
+      'temperature',
+      'calories',
+      'fundal_height',
+      'kick_count',
+    ] as const;
+    const readingLines: string[] = [];
+    for (const kind of readingKinds) {
+      const series = indicatorSeries(events, kind);
+      if (!series.length) continue;
+      const last = series[series.length - 1];
+      if (kind === 'blood_pressure' && last.valueSecondary != null) {
+        readingLines.push(
+          `${kind}: ${last.value}/${last.valueSecondary} (${last.date})`
+        );
+      } else {
+        readingLines.push(`${kind}: ${last.value} (${last.date})`);
+      }
+    }
+    if (readingLines.length) bundle.readings = readingLines;
   }
-  if (readingLines.length) bundle.readings = readingLines;
 
   const appts = events
     .filter((e) => e.type === 'appointment')
@@ -149,6 +200,24 @@ export function collectAskContext(
       return d ? `${e.title} (${d})` : e.title;
     });
   if (appts.length) bundle.appointments = appts;
+
+  const baby = opts?.baby ?? null;
+  if (baby) {
+    const lines = babyLogSummaryLines(baby, events, locale);
+    for (const line of lines) {
+      if (line.startsWith('Baby:') || line.startsWith('寶寶：')) {
+        bundle.babyAge = line;
+      } else if (/feed|餵奶|pump|擠奶/i.test(line)) {
+        bundle.babyFeeds = [...(bundle.babyFeeds ?? []), line];
+      } else if (/diaper|尿布/i.test(line)) {
+        bundle.babyDiapers = [...(bundle.babyDiapers ?? []), line];
+      } else if (/sleep|睡眠|tummy|趴姿|spit|溢奶/i.test(line)) {
+        bundle.babySleep = [...(bundle.babySleep ?? []), line];
+      } else if (/weight|體重/i.test(line)) {
+        bundle.babyWeight = line;
+      }
+    }
+  }
 
   return bundle;
 }

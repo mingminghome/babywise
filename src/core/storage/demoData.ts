@@ -2,7 +2,17 @@
  * Randomized local sample data for demos / QA.
  * Writes only to this browser’s localStorage.
  */
-import { saveEvents, saveProfile } from './store';
+import { getSettings, saveBabies, saveEvents, saveLaborSessions, saveProfile, saveSettings } from './store';
+import { buildCheckupEvent, WELL_BABY_CHECKUPS } from '../baby/checkups';
+import {
+  diaperTitle,
+  feedTitle,
+  pumpTitle,
+  sleepTitle,
+  spitupTitle,
+  tummyTitle,
+} from '../baby/titles';
+import { DEFAULT_LABOR_RULE, LABOR_PRESET_RULES } from '../labor/engine';
 import {
   addDays,
   dueDateFromLmp,
@@ -11,9 +21,16 @@ import {
   todayIso,
 } from '../pregnancy/engine';
 import type {
+  BabyProfile,
   CalendarEvent,
+  Contraction,
+  DiaperKind,
+  FeedMethod,
+  FeedSide,
   IndicatorKind,
+  LaborSession,
   PregnancyProfile,
+  SpitupAmount,
 } from '../types';
 
 function uid(seed: string): string {
@@ -84,12 +101,15 @@ const NOTES = [
   'Mood was calm this afternoon',
 ] as const;
 
+const BABY_NAMES = ['Mei', 'Jun', 'Aria', 'Luca', 'Noor', 'Theo'] as const;
+
 /**
- * Random gestational age ~ weeks 8–28 (realistic demo range).
+ * Mix of mid-pregnancy (calendar demo) and late pregnancy (labor card on Home).
  */
 export function buildDemoProfile(): PregnancyProfile {
   const now = new Date().toISOString();
-  const daysPregnant = randInt(56, 196); // 8–28 weeks
+  const late = Math.random() < 0.55;
+  const daysPregnant = late ? randInt(252, 273) : randInt(84, 196); // ~36–39 or 12–28
   const lmpDate = addDays(todayIso(), -daysPregnant);
   const method = Math.random() < 0.65 ? 'lmp' : 'due_date';
   const dueDate = dueDateFromLmp(lmpDate);
@@ -101,6 +121,251 @@ export function buildDemoProfile(): PregnancyProfile {
     createdAt: now,
     updatedAt: now,
   };
+}
+
+export function buildDemoBabies(): BabyProfile[] {
+  const now = new Date().toISOString();
+  const twins = Math.random() < 0.28;
+  const names = shuffle([...BABY_NAMES]);
+  const ageDays = twins ? randInt(10, 40) : randInt(8, 120);
+  const birthDate = addDays(todayIso(), -ageDays);
+  const birthTime = hm(randInt(1, 23), pick([0, 12, 30, 45]));
+  const make = (name: string, i: number): BabyProfile => ({
+    id: uid(`baby-${i}`),
+    name,
+    birthDate,
+    birthTime,
+    sex: pick(['girl', 'boy', 'unspecified']),
+    skinTone: pick(['fair', 'light', 'medium', 'tan', 'deep']),
+    hairColor: pick(['black', 'dark_brown', 'brown', 'blonde', 'red', 'none']),
+    birthWeightKg: Math.round((2.6 + Math.random() * 1.4) * 100) / 100,
+    birthLengthCm: Math.round((46 + Math.random() * 8) * 10) / 10,
+    gestationalWeeksAtBirth: Math.random() < 0.25 ? randInt(32, 36) : randInt(37, 40),
+    createdAt: now,
+    updatedAt: now,
+  });
+  const first = make(names[0]!, 0);
+  if (!twins) return [first];
+  return [first, make(names[1]!, 1)];
+}
+
+function stamp(
+  now: string,
+  babyId: string,
+  day: string,
+  time: string
+): Pick<
+  CalendarEvent,
+  'babyId' | 'startAt' | 'timesOfDay' | 'takenAt' | 'allDay' | 'recurrence' | 'createdAt' | 'updatedAt'
+> {
+  return {
+    babyId,
+    startAt: day,
+    timesOfDay: [time],
+    takenAt: `${day}T${time}:00`,
+    allDay: false,
+    recurrence: 'none',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function buildDemoBabyEvents(babies: BabyProfile[]): CalendarEvent[] {
+  const now = new Date().toISOString();
+  const today = todayIso();
+  const events: CalendarEvent[] = [];
+  const methods: FeedMethod[] = ['breast', 'bottle', 'formula'];
+  const sides: FeedSide[] = ['left', 'right', 'both'];
+  const diapers: DiaperKind[] = ['wet', 'dirty', 'mixed'];
+  const spit: SpitupAmount[] = ['small', 'medium', 'large'];
+
+  for (const baby of babies) {
+    for (const dayOffset of [0, 1, 2]) {
+      const day = addDays(today, -dayOffset);
+      const feeds = randInt(4, 7);
+      for (let i = 0; i < feeds; i++) {
+        const method = pick(methods);
+        const feed = {
+          method,
+          side: method === 'breast' ? pick(sides) : undefined,
+          durationMinutes: method === 'breast' ? randInt(8, 28) : randInt(5, 18),
+          amountMl: method === 'breast' ? undefined : randInt(60, 150),
+        };
+        const t = hm(randInt(5, 22));
+        events.push({
+          id: uid(`feed-${baby.id}-${dayOffset}-${i}`),
+          title: feedTitle(feed, 'en'),
+          type: 'feed',
+          feed,
+          ...stamp(now, baby.id, day, t),
+        });
+      }
+
+      const nDiapers = randInt(4, 7);
+      for (let i = 0; i < nDiapers; i++) {
+        const diaper = { kind: pick(diapers) };
+        events.push({
+          id: uid(`diaper-${baby.id}-${dayOffset}-${i}`),
+          title: diaperTitle(diaper, 'en'),
+          type: 'diaper',
+          diaper,
+          ...stamp(now, baby.id, day, hm(randInt(6, 22))),
+        });
+      }
+
+      const sleeps = randInt(2, 4);
+      for (let i = 0; i < sleeps; i++) {
+        const startH = randInt(0, 20);
+        const mins = randInt(35, 140);
+        const start = `${day}T${hm(startH)}:00`;
+        const endMs = Date.parse(start) + mins * 60_000;
+        const endedAt = Number.isFinite(endMs)
+          ? new Date(endMs).toISOString()
+          : undefined;
+        const sleep = { endedAt, ongoing: false };
+        const ev: CalendarEvent = {
+          id: uid(`sleep-${baby.id}-${dayOffset}-${i}`),
+          title: '',
+          type: 'sleep',
+          sleep,
+          ...stamp(now, baby.id, day, hm(startH)),
+        };
+        ev.title = sleepTitle(sleep, 'en', ev);
+        events.push(ev);
+      }
+
+      if (Math.random() < 0.7) {
+        const pump = {
+          side: pick(sides),
+          durationMinutes: randInt(10, 25),
+          amountMl: randInt(40, 160),
+        };
+        events.push({
+          id: uid(`pump-${baby.id}-${dayOffset}`),
+          title: pumpTitle(pump, 'en'),
+          type: 'pump',
+          pump,
+          ...stamp(now, baby.id, day, hm(randInt(8, 20))),
+        });
+      }
+
+      if (Math.random() < 0.65) {
+        const tummy = { durationMinutes: randInt(3, 12), ongoing: false };
+        events.push({
+          id: uid(`tummy-${baby.id}-${dayOffset}`),
+          title: tummyTitle(tummy, 'en'),
+          type: 'tummy',
+          tummy,
+          ...stamp(now, baby.id, day, hm(randInt(10, 18))),
+        });
+      }
+
+      if (Math.random() < 0.45) {
+        const spitup = { amount: pick(spit) };
+        events.push({
+          id: uid(`spit-${baby.id}-${dayOffset}`),
+          title: spitupTitle(spitup, 'en'),
+          type: 'spitup',
+          spitup,
+          ...stamp(now, baby.id, day, hm(randInt(8, 20))),
+        });
+      }
+    }
+
+    const birthKg = baby.birthWeightKg ?? 3.2;
+    for (let i = 0; i < 3; i++) {
+      const day = addDays(today, -i * 4);
+      const value = Math.round((birthKg + i * 0.08 + Math.random() * 0.05) * 100) / 100;
+      events.push({
+        id: uid(`bweight-${baby.id}-${i}`),
+        title: `${value} kg`,
+        type: 'indicator',
+        indicator: { kind: 'weight', value, unit: 'kg' },
+        ...stamp(now, baby.id, day, hm(9)),
+      });
+    }
+
+    const upcoming = WELL_BABY_CHECKUPS.filter((c) => {
+      const when = addDays(baby.birthDate, c.offsetDays);
+      return when >= addDays(today, -7);
+    }).slice(0, 3);
+    for (const template of upcoming) {
+      const built = buildCheckupEvent(baby, template, 'en');
+      events.push({
+        ...built,
+        id: uid(`check-${baby.id}-${template.key}`),
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  }
+
+  return events;
+}
+
+export function buildDemoLabor(
+  babies: BabyProfile[],
+  latePregnancy: boolean
+): LaborSession[] {
+  const now = new Date().toISOString();
+  const today = todayIso();
+  const rule = LABOR_PRESET_RULES['511'];
+  const sessions: LaborSession[] = [];
+
+  const contractionsFor = (startIso: string, count: number, openLast: boolean): Contraction[] => {
+    const out: Contraction[] = [];
+    let t = Date.parse(startIso);
+    if (!Number.isFinite(t)) t = Date.now() - 2 * 60 * 60 * 1000;
+    for (let i = 0; i < count; i++) {
+      const dur = randInt(40, 75);
+      const startAt = new Date(t).toISOString();
+      const endAt =
+        openLast && i === count - 1
+          ? undefined
+          : new Date(t + dur * 1000).toISOString();
+      out.push({
+        id: uid(`cx-${i}`),
+        startAt,
+        endAt,
+        intensity: randInt(2, 5),
+      });
+      t += randInt(3, 7) * 60 * 1000;
+    }
+    return out;
+  };
+
+  const birth = babies[0]?.birthDate;
+  const linkedStart = birth
+    ? `${addDays(birth, 0)}T${hm(randInt(1, 6))}:00`
+    : `${addDays(today, -randInt(2, 8))}T${hm(18)}:00`;
+  const linked: LaborSession = {
+    id: uid('labor-linked'),
+    startedAt: linkedStart,
+    endedAt: new Date(Date.parse(linkedStart) + randInt(4, 10) * 3600_000).toISOString(),
+    contractions: contractionsFor(linkedStart, randInt(8, 14), false),
+    rulePreset: '511',
+    rule,
+    babyId: babies[0]?.id,
+    notes: 'Sample labor diary — not medical data',
+    createdAt: now,
+    updatedAt: now,
+  };
+  sessions.push(linked);
+
+  if (latePregnancy && Math.random() < 0.45) {
+    const start = new Date(Date.now() - randInt(20, 50) * 60_000).toISOString();
+    sessions.push({
+      id: uid('labor-open'),
+      startedAt: start,
+      contractions: contractionsFor(start, randInt(3, 6), true),
+      rulePreset: '511',
+      rule: DEFAULT_LABOR_RULE,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  return sessions;
 }
 
 export function buildDemoEvents(_profile: PregnancyProfile): CalendarEvent[] {
@@ -314,24 +579,46 @@ export function buildDemoEvents(_profile: PregnancyProfile): CalendarEvent[] {
 }
 
 /**
- * Overwrite local profile + calendar with a new random sample set
- * (does not touch settings, Ask history, or disclaimer ack).
+ * Overwrite local profile, calendar, babies, and labor with a new random sample.
+ * Does not wipe Ask history or the disclaimer ack. Turns Baby care on.
  */
 export function loadDemoData(): {
   profile: PregnancyProfile;
   eventCount: number;
+  babyCount: number;
+  laborCount: number;
   weeksHint: string;
 } {
   const profile = buildDemoProfile();
-  const events = buildDemoEvents(profile);
+  const ga = getGestationalAge(profile);
+  const latePregnancy = Boolean(ga?.isValid && ga.weeks >= 36);
+  const babies = buildDemoBabies();
+  const events = [...buildDemoEvents(profile), ...buildDemoBabyEvents(babies)];
+  const labor = buildDemoLabor(babies, latePregnancy);
+
   saveProfile(profile);
   saveEvents(events);
+  saveBabies(babies);
+  saveLaborSessions(labor);
 
-  const ga = getGestationalAge(profile);
+  const settings = getSettings();
+  saveSettings({
+    ...settings,
+    babyCareEnabled: true,
+    activeBabyId: babies[0]?.id,
+    laborHomeMode: 'auto',
+  });
+
   const weeksHint =
     ga && ga.totalDays >= 0
       ? formatWeekDay(ga.weeks, ga.days, 'en')
       : 'sample pregnancy';
 
-  return { profile, eventCount: events.length, weeksHint };
+  return {
+    profile,
+    eventCount: events.length,
+    babyCount: babies.length,
+    laborCount: labor.length,
+    weeksHint,
+  };
 }

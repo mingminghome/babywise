@@ -160,7 +160,7 @@ export function getShapeMotionModifier(shape: FruitShape): ShapeMotionModifier {
   switch (shape) {
     case 'curve':
       // Banana: crescent shape, tailored arm swing avoiding the spine
-      return { armSwingScale: 0.88, tiltDeg: -4, shapeClass: 'shape-curve' };
+      return { armSwingScale: 0.88, tiltDeg: 0, shapeClass: 'shape-curve' };
     case 'long':
       // Sweet potato, eggplant, spaghetti squash, corn: slender vertical bodies
       return { armSwingScale: 0.85, tiltDeg: 0, shapeClass: 'shape-long' };
@@ -169,13 +169,13 @@ export function getShapeMotionModifier(shape: FruitShape): ShapeMotionModifier {
       return { armSwingScale: 1.12, tiltDeg: 0, shapeClass: 'shape-butternut' };
     case 'chard':
       // Swiss chard: leafy crown with stalks below
-      return { armSwingScale: 0.95, tiltDeg: -8, shapeClass: 'shape-chard' };
+      return { armSwingScale: 0.95, tiltDeg: 0, shapeClass: 'shape-chard' };
     case 'romaine':
       // Tall narrow lettuce head
-      return { armSwingScale: 0.82, tiltDeg: -6, shapeClass: 'shape-romaine' };
+      return { armSwingScale: 0.82, tiltDeg: 0, shapeClass: 'shape-romaine' };
     case 'cauli':
       // Fluffy curd cloud
-      return { armSwingScale: 1.05, tiltDeg: -4, shapeClass: 'shape-cauli' };
+      return { armSwingScale: 1.05, tiltDeg: 0, shapeClass: 'shape-cauli' };
     case 'tiny':
       // Little seeds: energetic micro-swings
       return { armSwingScale: 1.25, tiltDeg: 0, shapeClass: 'shape-tiny' };

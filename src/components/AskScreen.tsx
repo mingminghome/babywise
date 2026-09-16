@@ -1,8 +1,25 @@
-import { useMemo, useRef, useState } from 'react';
-import { Camera, Gauge, ImagePlus, Sparkles, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Baby,
+  Camera,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Gauge,
+  HeartPulse,
+  ImagePlus,
+  Info,
+  Sparkles,
+  X,
+} from 'lucide-react';
+import { activeBaby } from '../core/baby/logs';
+import { formatBabyAge } from '../core/baby/age';
 import {
   collectAskContext,
   mergeContextFlags,
+  type AskContextFlags,
+  type AskContextKey,
 } from '../core/ai/askContext';
 import { engineRunAsk } from '../core/ai/engine';
 import type { RateLimitMeta } from '../core/ai/types';
@@ -126,20 +143,50 @@ function AskResultPanel({
   provider: string | null;
   t: AppState['t'];
 }) {
+  const [copied, setCopied] = useState(false);
   const multi = (result.items?.length ?? 0) > 1;
   const items = result.items ?? [];
+
+  const handleCopy = async () => {
+    const lines = [
+      result.title,
+      result.summary && result.summary !== result.title ? result.summary : '',
+      result.western?.summary ? `[Western / 西醫]: ${result.western.summary}` : '',
+      result.tcm?.summary ? `[TCM / 中醫]: ${result.tcm.summary}` : '',
+      result.caveats?.length ? `Note: ${result.caveats.join('; ')}` : '',
+    ].filter(Boolean);
+
+    try {
+      await navigator.clipboard.writeText(lines.join('\n\n'));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <div className="ask-result" role="status">
       <div className="ask-result-head">
-        <h2 className="ask-result-title">{result.title}</h2>
-        {provider ? (
-          <span className="ask-result-meta muted">
-            {t('ask.answeredBy', {
-              name: t(`settings.providers.${provider}`),
-            })}
-          </span>
-        ) : null}
+        <div className="ask-result-title-wrap">
+          <h2 className="ask-result-title">{result.title}</h2>
+          {provider ? (
+            <span className="ask-result-meta muted">
+              {t('ask.answeredBy', {
+                name: t(`settings.providers.${provider}`),
+              })}
+            </span>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm ask-copy-btn"
+          onClick={handleCopy}
+          title={t('ask.copyAnswer')}
+        >
+          {copied ? <Check size={14} className="copy-check" /> : <Copy size={14} />}
+          <span>{copied ? t('ask.answerCopied') : t('ask.copyAnswer')}</span>
+        </button>
       </div>
 
       {result.summary && result.summary !== result.title ? (
@@ -196,12 +243,20 @@ export function AskScreen({ state }: { state: AppState }) {
     settings,
     profile,
     events,
+    babies,
     t,
     askHistory,
     pushAskHistory,
     removeAskHistory,
+    pendingAsk,
+    clearPendingAsk,
+    homeMode = 'pregnancy',
   } = state;
 
+  const isBabyMode = homeMode === 'baby';
+
+  const [selectedBabyId, setSelectedBabyId] = useState<string | null>(null);
+  const [showContextDetails, setShowContextDetails] = useState(false);
   const [text, setText] = useState('');
   const [photo, setPhoto] = useState<PreparedImage | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -211,6 +266,15 @@ export function AskScreen({ state }: { state: AppState }) {
   const [lastProvider, setLastProvider] = useState<string | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const currentBaby = isBabyMode
+    ? selectedBabyId
+      ? babies.find((b) => b.id === selectedBabyId) ?? activeBaby(babies, settings.activeBabyId)
+      : activeBaby(babies, settings.activeBabyId)
+    : null;
+
+  const babyAge = currentBaby ? formatBabyAge(currentBaby.birthDate, settings.locale) : '';
 
   const week = gaWeek(state);
   const provider = settings.ai.provider ?? 'gemini';
@@ -218,11 +282,177 @@ export function AskScreen({ state }: { state: AppState }) {
   const canSubmit = Boolean(text.trim() || photo);
 
   const bundle = useMemo(
-    () => collectAskContext(profile, events, settings.locale),
-    [profile, events, settings.locale]
+    () =>
+      collectAskContext(profile, events, settings.locale, {
+        baby: currentBaby,
+        mode: homeMode,
+      }),
+    [
+      profile,
+      events,
+      settings.locale,
+      currentBaby,
+      homeMode,
+    ]
   );
 
-  const flags = mergeContextFlags(settings.ai.contextPrefs);
+  const [activeFlags, setActiveFlags] = useState<AskContextFlags>(() =>
+    mergeContextFlags(settings.ai.contextPrefs)
+  );
+
+  const toggleContextKey = (key: AskContextKey) => {
+    setActiveFlags((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  // Determine available context items from bundle
+  const availableContextItems = useMemo(() => {
+    const list: Array<{
+      key: AskContextKey;
+      label: string;
+      icon?: string;
+      detail: string;
+    }> = [];
+    if (isBabyMode) {
+      if (bundle.babyAge) {
+        list.push({
+          key: 'babyAge',
+          label: currentBaby ? `${currentBaby.name} (${babyAge})` : bundle.babyAge,
+          icon: '👶',
+          detail: currentBaby ? `${currentBaby.name} (${babyAge})` : bundle.babyAge,
+        });
+      }
+      if (bundle.babyFeeds?.length) {
+        list.push({
+          key: 'babyFeeds',
+          label: t('ask.context.babyFeeds'),
+          icon: '🍼',
+          detail: bundle.babyFeeds.join(' · '),
+        });
+      }
+      if (bundle.babyDiapers?.length) {
+        list.push({
+          key: 'babyDiapers',
+          label: t('ask.context.babyDiapers'),
+          icon: '🧷',
+          detail: bundle.babyDiapers.join(' · '),
+        });
+      }
+      if (bundle.babySleep?.length) {
+        list.push({
+          key: 'babySleep',
+          label: t('ask.context.babySleep'),
+          icon: '💤',
+          detail: bundle.babySleep.join(' · '),
+        });
+      }
+      if (bundle.babyWeight) {
+        list.push({
+          key: 'babyWeight',
+          label: bundle.babyWeight,
+          icon: '⚖️',
+          detail: bundle.babyWeight,
+        });
+      }
+      if (bundle.medicines?.length) {
+        list.push({
+          key: 'medicines',
+          label: t('ask.context.medicines'),
+          icon: '💊',
+          detail: bundle.medicines.join(' · '),
+        });
+      }
+      if (bundle.appointments?.length) {
+        list.push({
+          key: 'appointments',
+          label: t('ask.context.appointments'),
+          icon: '📅',
+          detail: bundle.appointments.join(' · '),
+        });
+      }
+    } else {
+      if (bundle.week) {
+        list.push({
+          key: 'week',
+          label: bundle.week,
+          icon: '🤰',
+          detail: bundle.week,
+        });
+      }
+      if (bundle.dueDate) {
+        list.push({
+          key: 'dueDate',
+          label: `${t('ask.context.dueDate')}: ${bundle.dueDate}`,
+          icon: '📅',
+          detail: bundle.dueDate,
+        });
+      }
+      if (bundle.medicines?.length) {
+        list.push({
+          key: 'medicines',
+          label: t('ask.context.medicines'),
+          icon: '💊',
+          detail: bundle.medicines.join(' · '),
+        });
+      }
+      if (bundle.takenToday?.length) {
+        list.push({
+          key: 'takenToday',
+          label: t('ask.context.takenToday'),
+          icon: '✓',
+          detail: bundle.takenToday.join(' · '),
+        });
+      }
+      if (bundle.weight) {
+        list.push({
+          key: 'weight',
+          label: bundle.weight,
+          icon: '⚖️',
+          detail: bundle.weight,
+        });
+      }
+      if (bundle.readings?.length) {
+        list.push({
+          key: 'readings',
+          label: t('ask.context.readings'),
+          icon: '🩺',
+          detail: bundle.readings.join(' · '),
+        });
+      }
+      if (bundle.appointments?.length) {
+        list.push({
+          key: 'appointments',
+          label: t('ask.context.appointments'),
+          icon: '📅',
+          detail: bundle.appointments.join(' · '),
+        });
+      }
+    }
+    return list;
+  }, [bundle, isBabyMode, currentBaby, babyAge, t]);
+
+  const activeCount = availableContextItems.filter((item) => activeFlags[item.key]).length;
+
+  const suggestedTopics = useMemo(() => {
+    if (isBabyMode) {
+      return [
+        { id: 'feeds', text: t('ask.suggestedBabyFeeds') },
+        { id: 'fever', text: t('ask.suggestedBabyFever') },
+        { id: 'sleep', text: t('ask.suggestedBabySleep') },
+        { id: 'diapers', text: t('ask.suggestedBabyDiapers') },
+        { id: 'lactation', text: t('ask.suggestedBabyLactation') },
+      ];
+    }
+    return [
+      { id: 'food', text: t('ask.suggestedPregnancyFood') },
+      { id: 'meds', text: t('ask.suggestedPregnancyMeds') },
+      { id: 'bp', text: t('ask.suggestedPregnancyBp') },
+      { id: 'contractions', text: t('ask.suggestedPregnancyContractions') },
+      { id: 'sleep', text: t('ask.suggestedPregnancySleep') },
+    ];
+  }, [isBabyMode, t]);
 
   const rateLimitMessage = (hit: RateHit): string => {
     const w = hit.meta?.window;
@@ -265,25 +495,27 @@ export function AskScreen({ state }: { state: AppState }) {
     setPhoto(null);
   };
 
-  const runAsk = async () => {
+  const runAsk = async (presetQuestion?: string) => {
     setError(null);
     setRateHit(null);
     setResult(null);
     setLastProvider(null);
-    if (!text.trim() && !photo) {
+    const question = (presetQuestion ?? text).trim();
+    if (!question && !photo) {
       setError(t('ask.needText'));
       return;
     }
-    const question = text.trim();
     const attached = photo;
     setLoading(true);
     try {
       const out = await engineRunAsk({
         question,
         locale: settings.locale,
-        pregnancyWeek: week,
+        mode: homeMode,
+        babyName: isBabyMode && currentBaby ? currentBaby.name : undefined,
+        pregnancyWeek: isBabyMode ? undefined : week,
         context: bundle,
-        include: flags,
+        include: activeFlags,
         provider,
         image: attached
           ? { mimeType: attached.mimeType, data: attached.data }
@@ -319,7 +551,6 @@ export function AskScreen({ state }: { state: AppState }) {
       const used = out.provider ?? provider;
       setLastProvider(used);
       setResult(out.result);
-      // Clear text + photo after a successful answer
       clearComposer();
       const queryLabel =
         question ||
@@ -339,6 +570,23 @@ export function AskScreen({ state }: { state: AppState }) {
     }
   };
 
+  const handleSelectSuggested = (promptText: string) => {
+    // Strip leading emoji if present
+    const clean = promptText.replace(/^[^\w\u4e00-\u9fa5]+\s*/, '');
+    setText(clean);
+    textareaRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (!pendingAsk) return;
+    const q = pendingAsk.question;
+    const auto = pendingAsk.autoSubmit;
+    clearPendingAsk();
+    setText(q);
+    if (auto) void runAsk(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- consume once on mount/nav
+  }, [pendingAsk]);
+
   const openHistoryItem = (item: (typeof askHistory)[number]) => {
     clearComposer();
     setResult(item.result);
@@ -351,17 +599,140 @@ export function AskScreen({ state }: { state: AppState }) {
   const recent = askHistory.slice(0, 12);
   const inputPlaceholder = photo
     ? t('ask.placeholderWithPhoto')
-    : t('ask.placeholder');
+    : isBabyMode
+      ? settings.locale === 'zh-Hant'
+        ? '請教寶寶餵奶、發燒警訊、睡眠、尿布或副食品…'
+        : 'Ask about baby feeds, fever, sleep, diapers, or newborn symptoms…'
+      : t('ask.placeholder');
 
   return (
     <>
-      <header className="page-heading">
-        <h1>{t('ask.title')}</h1>
+      <header className="page-heading ask-page-heading">
+        <div className="ask-header-top">
+          <h1>{t('ask.title')}</h1>
+          <span className={`ask-mode-badge ${isBabyMode ? 'is-baby' : 'is-pregnancy'}`}>
+            {isBabyMode ? (
+              <>
+                <Baby size={14} />
+                <span>{t('ask.modeBaby')}</span>
+              </>
+            ) : (
+              <>
+                <HeartPulse size={14} />
+                <span>{week ? `${t('ask.modePregnancy')} · W${week}` : t('ask.modePregnancy')}</span>
+              </>
+            )}
+          </span>
+        </div>
         <p className="subtitle">{t('ask.simpleHint')}</p>
+
+        {/* Multi-baby switcher if user has > 1 baby in baby mode */}
+        {isBabyMode && babies.length > 1 && (
+          <div className="ask-baby-switch-bar">
+            <span className="ask-switch-label muted">{t('ask.switchBaby')}:</span>
+            <div className="ask-baby-chips">
+              {babies.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className={`chip ${currentBaby?.id === b.id ? 'chip-active' : ''}`}
+                  onClick={() => setSelectedBabyId(b.id)}
+                >
+                  <Baby size={13} />
+                  <span>{b.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
+      {/* Context telemetry bar */}
+      <section className="card ask-context-card">
+        <div className="ask-context-head">
+          <div className="ask-context-info">
+            <Info size={15} className="ask-context-icon" />
+            <strong className="ask-context-title">{t('ask.attachedContextTitle')}</strong>
+            <span className="ask-context-count">
+              {activeCount} / {availableContextItems.length}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm ask-context-toggle"
+            onClick={() => setShowContextDetails(!showContextDetails)}
+          >
+            <span>{showContextDetails ? t('ask.hideAttachedDetails') : t('ask.attachedDetails')}</span>
+            {showContextDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        </div>
+
+        {/* Pill tags of attached data - Click to toggle / deselect */}
+        <div className="ask-pills-row" role="group" aria-label={t('ask.attachedContextTitle')}>
+          {availableContextItems.length > 0 ? (
+            availableContextItems.map((item) => {
+              const isIncluded = Boolean(activeFlags[item.key]);
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`ask-data-pill ${isIncluded ? 'is-active' : 'is-deselected'}`}
+                  onClick={() => toggleContextKey(item.key)}
+                  aria-pressed={isIncluded}
+                  title={isIncluded ? t('calendar.delete') : t('calendar.add')}
+                >
+                  {item.icon && <span className="pill-emoji">{item.icon}</span>}
+                  <span className="pill-label">{item.label}</span>
+                  <span className="pill-toggle-icon" aria-hidden="true">
+                    {isIncluded ? '×' : '+'}
+                  </span>
+                </button>
+              );
+            })
+          ) : (
+            <span className="muted" style={{ fontSize: '0.78rem' }}>
+              {t('settings.askContextEmpty')}
+            </span>
+          )}
+        </div>
+
+        {/* Expandable context details (default folded) */}
+        {showContextDetails && (
+          <div className="ask-context-details">
+            <p className="ask-context-hint muted">{t('ask.tapToToggleContext')}</p>
+            <div className="ask-context-checklist">
+              {availableContextItems.map((item) => {
+                const isIncluded = Boolean(activeFlags[item.key]);
+                return (
+                  <label
+                    key={item.key}
+                    className={`ask-context-checklist-item ${isIncluded ? 'is-included' : 'is-excluded'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isIncluded}
+                      onChange={() => toggleContextKey(item.key)}
+                    />
+                    <div className="ask-context-checklist-content">
+                      <span className="ask-context-item-name">
+                        {item.icon} {t(`ask.context.${item.key}`)}
+                      </span>
+                      <span className="ask-context-item-detail muted">
+                        {item.detail}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Composer Card */}
       <section className="card stack ask-composer">
-        {/* Camera: prefers rear camera on mobile */}
+        {/* Hidden Camera inputs */}
         <input
           ref={cameraRef}
           type="file"
@@ -372,7 +743,6 @@ export function AskScreen({ state }: { state: AppState }) {
           tabIndex={-1}
           onChange={(e) => void onPickPhoto(e.target.files?.[0])}
         />
-        {/* Gallery / files without capture so users can pick existing photos */}
         <input
           ref={galleryRef}
           type="file"
@@ -402,9 +772,10 @@ export function AskScreen({ state }: { state: AppState }) {
 
         <div className="field" style={{ marginBottom: 0 }}>
           <label htmlFor="ask-input">
-            {photo ? t('ask.noteOptional') : t('ask.placeholder')}
+            {photo ? t('ask.noteOptional') : isBabyMode && currentBaby ? `${t('ask.askingFor')} ${currentBaby.name}` : t('ask.placeholder')}
           </label>
           <textarea
+            ref={textareaRef}
             id="ask-input"
             value={text}
             placeholder={inputPlaceholder}
@@ -413,6 +784,24 @@ export function AskScreen({ state }: { state: AppState }) {
           />
         </div>
 
+        {/* Suggested Quick Prompt Chips */}
+        <div className="ask-suggested-wrap">
+          <span className="ask-suggested-title muted">{t('ask.suggestedTitle')}:</span>
+          <div className="ask-suggested-chips">
+            {suggestedTopics.map((topic) => (
+              <button
+                key={topic.id}
+                type="button"
+                className="ask-chip-btn"
+                onClick={() => handleSelectSuggested(topic.text)}
+              >
+                {topic.text}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Photo and Camera action buttons */}
         {!photo ? (
           <div className="ask-photo-actions">
             <button
@@ -438,22 +827,27 @@ export function AskScreen({ state }: { state: AppState }) {
 
         <button
           type="button"
-          className="btn btn-primary btn-block"
+          className="btn btn-primary btn-block ask-submit-btn"
           disabled={loading || !canSubmit}
-          onClick={runAsk}
+          onClick={() => void runAsk()}
         >
-          <Sparkles size={16} />
-          {loading
-            ? t('ask.autoCheckingNamed', { name: providerLabel })
-            : t('ask.autoAnswerNamed', { name: providerLabel })}
+          <Sparkles size={17} className={loading ? 'spin-icon' : ''} />
+          <span>
+            {loading
+              ? t('ask.autoCheckingNamed', { name: providerLabel })
+              : t('ask.autoAnswerNamed', { name: providerLabel })}
+          </span>
         </button>
-        <p className="ask-free-note muted">
-          <Gauge size={12} style={{ verticalAlign: -1, marginRight: 4 }} />
-          {t('ask.rateLimitFreeNote')}
-        </p>
-        <p className="muted" style={{ fontSize: '0.8rem' }}>
-          {photo ? t('ask.photoAutoHint') : t('ask.autoHint')}
-        </p>
+
+        <div className="ask-footer-notes">
+          <p className="ask-free-note muted">
+            <Gauge size={12} style={{ verticalAlign: -1, marginRight: 4 }} />
+            {t('ask.rateLimitFreeNote')}
+          </p>
+          <p className="muted" style={{ fontSize: '0.78rem' }}>
+            {photo ? t('ask.photoAutoHint') : t('ask.autoHint')}
+          </p>
+        </div>
 
         {rateHit ? (
           <div className="rate-limit-banner" role="alert">
@@ -479,12 +873,14 @@ export function AskScreen({ state }: { state: AppState }) {
         ) : null}
       </section>
 
+      {/* Answer Result Display */}
       {result && (
-        <section className="card">
+        <section className="card ask-result-card">
           <AskResultPanel result={result} provider={lastProvider} t={t} />
         </section>
       )}
 
+      {/* Recent Question History */}
       {recent.length > 0 && (
         <section className="card ask-history-card">
           <div className="ask-history-head">

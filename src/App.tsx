@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { AppHeader } from './components/AppHeader';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/HomeScreen';
+import { InstallAppBanner } from './components/InstallAppBanner';
 import { CalendarScreen } from './components/CalendarScreen';
+import { BabyScreen } from './components/BabyScreen';
+import { LaborScreen } from './components/LaborScreen';
 import { AskScreen } from './components/AskScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { AboutScreen } from './components/AboutScreen';
@@ -34,6 +37,8 @@ export default function App() {
     events,
     profile,
     dataSummary,
+    showBabyTab,
+    homeMode,
   } = state;
   const [showWelcome, setShowWelcome] = useState(() => !hasDisclaimerAck());
   /** Bump when tab becomes visible so timers reschedule after phone sleep. */
@@ -131,13 +136,22 @@ export default function App() {
       <div className="app-shell">
         <AppHeader tab={tab} onChange={setTab} t={t} />
         <main className="app-main">
+          <InstallAppBanner t={t} />
           {tab === 'home' && <HomeScreen state={state} />}
           {tab === 'calendar' && <CalendarScreen state={state} />}
+          {tab === 'baby' && showBabyTab && <BabyScreen state={state} />}
+          {tab === 'tools' && <LaborScreen state={state} />}
           {tab === 'ask' && <AskScreen state={state} />}
           {tab === 'settings' && <SettingsScreen state={state} />}
           {tab === 'about' && <AboutScreen state={state} />}
         </main>
-        <BottomNav tab={tab} onChange={setTab} t={t} />
+        <BottomNav
+          tab={tab}
+          onChange={setTab}
+          t={t}
+          showBaby={showBabyTab}
+          isBabyMode={homeMode === 'baby'}
+        />
       </div>
       {showWelcome && <WelcomeDisclaimer t={t} onAccept={acceptWelcome} />}
     </div>
