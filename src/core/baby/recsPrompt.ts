@@ -1,4 +1,5 @@
 import type { BabyProfile, CalendarEvent, Locale } from '../types';
+import { formatReadingNumber } from '../indicators/catalog';
 import { formatBabyAge } from './age';
 import {
   diaperCountsOnDay,
@@ -112,8 +113,8 @@ export function babyLogSummaryLines(
   if (lastWeight?.indicator) {
     lines.push(
       zh
-        ? `最近體重 ${lastWeight.indicator.value} ${lastWeight.indicator.unit}`
-        : `Latest weight ${lastWeight.indicator.value} ${lastWeight.indicator.unit}`
+        ? `最近體重 ${formatReadingNumber(lastWeight.indicator.value)} ${lastWeight.indicator.unit}`
+        : `Latest weight ${formatReadingNumber(lastWeight.indicator.value)} ${lastWeight.indicator.unit}`
     );
   }
 

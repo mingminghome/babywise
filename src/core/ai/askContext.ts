@@ -1,5 +1,6 @@
 import { babyLogSummaryLines } from '../baby/recsPrompt';
 import { eventsForDate } from '../calendar/resolve';
+import { formatReadingNumber } from '../indicators/catalog';
 import { indicatorSeries } from '../indicators/series';
 import { formatWeekDay, getGestationalAge } from '../pregnancy/engine';
 import { todayIso } from '../pregnancy/engine';
@@ -159,8 +160,8 @@ export function collectAskContext(
     if (weights.length) {
       const last = weights[weights.length - 1];
       bundle.weight = isZh
-        ? `${last.value} kg（${last.date}）`
-        : `${last.value} kg (${last.date})`;
+        ? `${formatReadingNumber(last.value)} kg（${last.date}）`
+        : `${formatReadingNumber(last.value)} kg (${last.date})`;
     }
 
     const readingKinds = [
@@ -179,10 +180,12 @@ export function collectAskContext(
       const last = series[series.length - 1];
       if (kind === 'blood_pressure' && last.valueSecondary != null) {
         readingLines.push(
-          `${kind}: ${last.value}/${last.valueSecondary} (${last.date})`
+          `${kind}: ${formatReadingNumber(last.value)}/${formatReadingNumber(last.valueSecondary)} (${last.date})`
         );
       } else {
-        readingLines.push(`${kind}: ${last.value} (${last.date})`);
+        readingLines.push(
+          `${kind}: ${formatReadingNumber(last.value)} (${last.date})`
+        );
       }
     }
     if (readingLines.length) bundle.readings = readingLines;

@@ -147,26 +147,32 @@ export function PregnancyView({ state }: { state: AppState }) {
 
           <div className="field-group">
             <div className="field-group-title">{t('home.setUpStep1')}</div>
-            <div className="setup-method-grid">
+            <div className="setup-method-grid home-mode-grid" role="radiogroup" aria-label={t('home.setUpStep1')}>
               <button
                 type="button"
-                className={`setup-method-card ${method === 'lmp' ? 'active' : ''}`}
+                className={`home-mode-card ${method === 'lmp' ? 'is-active' : ''}`}
                 onClick={() => selectMethod('lmp')}
               >
-                <span className="setup-method-icon">
+                <span className="home-mode-icon">
                   <CalendarHeart size={20} />
                 </span>
-                <span className="setup-method-label">{t('home.methodLmp')}</span>
+                <div className="home-mode-info">
+                  <span className="home-mode-name">{t('home.methodLmp')}</span>
+                  <span className="home-mode-desc">{t('home.methodLmpDesc')}</span>
+                </div>
               </button>
               <button
                 type="button"
-                className={`setup-method-card ${method === 'due_date' ? 'active' : ''}`}
+                className={`home-mode-card ${method === 'due_date' ? 'is-active' : ''}`}
                 onClick={() => selectMethod('due_date')}
               >
-                <span className="setup-method-icon">
+                <span className="home-mode-icon">
                   <CalendarDays size={20} />
                 </span>
-                <span className="setup-method-label">{t('home.methodDue')}</span>
+                <div className="home-mode-info">
+                  <span className="home-mode-name">{t('home.methodDue')}</span>
+                  <span className="home-mode-desc">{t('home.methodDueDesc')}</span>
+                </div>
               </button>
             </div>
           </div>

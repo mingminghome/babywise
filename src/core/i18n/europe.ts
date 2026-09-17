@@ -40,6 +40,15 @@ const de: MessageTree = core(
       todayReminders: 'Heute',
       postpartumTitle: 'Babypflege',
       chartsTitle: 'Verläufe',
+      setUpTitle: 'Schwangerschaft einrichten',
+      setUpSubtitle: 'Wähle, was du weißt – wir berechnen deine Schwangerschaftswoche. Alles bleibt auf diesem Gerät.',
+      setUpDates: 'Daten eingeben',
+      setUpStep1: 'Wie möchtest du starten?',
+      setUpStep2: 'Datum wählen',
+      methodLmp: 'Letzter Menstruationsstart',
+      methodLmpDesc: 'Wir berechnen deinen Geburtstermin und die Schwangerschaftswoche ab diesem Datum.',
+      methodDue: 'Ich kenne meinen Geburtstermin',
+      methodDueDesc: 'Wir berechnen die Schwangerschaftswoche ab deinem Geburtstermin.',
     },
     calendar: {
       title: 'Kalender',
@@ -81,6 +90,18 @@ const de: MessageTree = core(
       placeholder: 'Essen, Medikament, Symptom oder Sorge…',
       simpleHint:
         'Frage zu Essen, Medikamenten, Symptomen oder Sorgen. Keine medizinische Beratung.',
+      autoHint:
+        'Fragen laufen über kostenlose KI. Nutzungs- und Ratenlimits können erreicht werden — Antworten können kurz pausieren. Später erneut versuchen oder Anbieter in den Einstellungen wechseln.',
+    },
+    about: {
+      title: 'Info',
+      tagline: 'Ein einfacher Schwangerschaftshelfer für dein Handy',
+      disclaimerTitle: 'Wichtiger Hinweis',
+      disclaimerBody:
+        'BabyWise ist kein medizinischer Rat. KI-Antworten können falsch sein. Bitte immer Arzt oder Hebamme konsultieren.',
+      privacyTitle: 'Deine Privatsphäre',
+      privacyLead:
+        'Kein Konto, keine Cloud-Kopie — deine Notizen bleiben auf deinem Gerät.',
     },
     settings: {
       title: 'Einstellungen',
@@ -111,10 +132,10 @@ const fr: MessageTree = core(
     install: {
       aria: 'Installer BabyWise',
       title: 'Installer BabyWise',
-      body: 'Ajoutez à l’écran d’accueil — comme une appli.',
-      bodyIos: 'Ajoutez à l’écran d’accueil pour le plein écran.',
+      body: 'Ajoutez à l\u2019écran d\u2019accueil — comme une appli.',
+      bodyIos: 'Ajoutez à l\u2019écran d\u2019accueil pour le plein écran.',
       iosStep1: 'Touchez',
-      iosStep2: 'Partager, puis Sur l’écran d’accueil.',
+      iosStep2: 'Partager, puis Sur l\u2019écran d\u2019accueil.',
       action: 'Installer',
       dismiss: 'Fermer',
     },
@@ -122,13 +143,22 @@ const fr: MessageTree = core(
       title: 'Votre grossesse',
       addItem: 'Ajouter',
       askQuick: 'Demander',
-      todayReminders: 'Aujourd’hui',
+      todayReminders: 'Aujourd\u2019hui',
       postpartumTitle: 'Soins bébé',
       chartsTitle: 'Courbes',
+      setUpTitle: 'Configurer votre grossesse',
+      setUpSubtitle: 'Choisissez ce que vous savez — nous calculerons votre avancement. Tout reste sur cet appareil.',
+      setUpDates: 'Configurer les dates',
+      setUpStep1: 'Comment souhaitez-vous commencer\u00a0?',
+      setUpStep2: 'Choisir la date',
+      methodLmp: 'Début des dernières règles',
+      methodLmpDesc: 'Nous calculerons votre terme et votre avancement à partir de cette date.',
+      methodDue: 'Je connais ma date prévue d\u2019accouchement',
+      methodDueDesc: 'Nous calculerons les semaines de grossesse à partir de votre DPA.',
     },
     calendar: {
       title: 'Agenda',
-      today: 'Aujourd’hui',
+      today: 'Aujourd\u2019hui',
       week: 'Semaine',
       month: 'Mois',
       byBabyWeek: 'SA',
@@ -154,7 +184,7 @@ const fr: MessageTree = core(
     },
     labor: {
       title: 'Minuteur de contractions',
-      tapStart: 'Touchez au début d’une contraction',
+      tapStart: 'Touchez au début d\u2019une contraction',
       tapStop: 'Touchez à la fin',
       tapNext: 'Touchez au début de la suivante',
       phaseOn: 'Contraction',
@@ -165,7 +195,19 @@ const fr: MessageTree = core(
       title: 'Demander',
       placeholder: 'Aliment, médicament, symptôme ou inquiétude…',
       simpleHint:
-        'Posez une question sur un aliment, un médicament, un symptôme. Ce n’est pas un avis médical.',
+        'Posez une question sur un aliment, un médicament, un symptôme. Ce n\u2019est pas un avis médical.',
+      autoHint:
+        'Les réponses utilisent une IA gratuite. Les limites d\u2019utilisation peuvent être atteintes — les réponses peuvent s\u2019interrompre. Réessayez plus tard ou changez de fournisseur dans les réglages.',
+    },
+    about: {
+      title: 'À propos',
+      tagline: 'Un simple assistant de grossesse pour votre téléphone',
+      disclaimerTitle: 'Remarque importante',
+      disclaimerBody:
+        'BabyWise n\u2019est pas un avis médical. Les réponses IA peuvent être incorrectes. Consultez toujours votre médecin ou sage-femme.',
+      privacyTitle: 'Votre vie privée',
+      privacyLead:
+        'Pas de compte, pas de copie en nuage — vos notes restent sur votre appareil.',
     },
     settings: {
       title: 'Réglages',
@@ -175,7 +217,7 @@ const fr: MessageTree = core(
       showMascot: 'Mascottes',
       showMascotLabel: 'Mascotte fruit (grossesse)',
       showBabyMascotLabel: 'Tête de bébé (après la naissance)',
-      hidePregnancyLabel: 'Masquer l’interface grossesse',
+      hidePregnancyLabel: 'Masquer l\u2019interface grossesse',
     },
   }
 );
@@ -210,6 +252,15 @@ const es: MessageTree = core(
       todayReminders: 'Hoy',
       postpartumTitle: 'Cuidado del bebé',
       chartsTitle: 'Tendencias',
+      setUpTitle: 'Configurar tu embarazo',
+      setUpSubtitle: 'Elige lo que sabes — calcularemos tu semana de embarazo. Todo queda en este dispositivo.',
+      setUpDates: 'Configurar fechas',
+      setUpStep1: '¿Cómo quieres empezar?',
+      setUpStep2: 'Elegir la fecha',
+      methodLmp: 'Inicio de la última regla',
+      methodLmpDesc: 'Calcularemos tu fecha probable de parto y semanas a partir de esta fecha.',
+      methodDue: 'Sé mi fecha probable de parto',
+      methodDueDesc: 'Calcularemos las semanas de embarazo desde tu fecha de parto.',
     },
     calendar: {
       title: 'Calendario',
@@ -251,6 +302,18 @@ const es: MessageTree = core(
       placeholder: 'Comida, medicamento, síntoma o duda…',
       simpleHint:
         'Pregunta por comida, medicamentos o síntomas. No es consejo médico.',
+      autoHint:
+        'Las respuestas usan IA gratuita. Se pueden alcanzar los límites — las respuestas pueden pausarse. Inténtalo más tarde o cambia de proveedor en Ajustes.',
+    },
+    about: {
+      title: 'Acerca de',
+      tagline: 'Un sencillo asistente de embarazo para tu móvil',
+      disclaimerTitle: 'Aviso importante',
+      disclaimerBody:
+        'BabyWise no es consejo médico. Las respuestas de IA pueden ser incorrectas. Consulta siempre a tu médico o matrona.',
+      privacyTitle: 'Tu privacidad',
+      privacyLead:
+        'Sin cuenta, sin copia en la nube — tus notas quedan en tu dispositivo.',
     },
     settings: {
       title: 'Ajustes',
@@ -281,7 +344,7 @@ const it: MessageTree = core(
     install: {
       aria: 'Installa BabyWise',
       title: 'Installa BabyWise',
-      body: 'Aggiungi alla schermata Home — come un’app.',
+      body: 'Aggiungi alla schermata Home — come un\u2019app.',
       bodyIos: 'Aggiungi alla schermata Home a tutto schermo.',
       iosStep1: 'Tocca',
       iosStep2: 'Condividi, poi Aggiungi a Home.',
@@ -295,6 +358,15 @@ const it: MessageTree = core(
       todayReminders: 'Oggi',
       postpartumTitle: 'Cura del bambino',
       chartsTitle: 'Andamenti',
+      setUpTitle: 'Configura la gravidanza',
+      setUpSubtitle: 'Scegli cosa sai — calcoleremo la tua settimana di gravidanza. Tutto rimane su questo dispositivo.',
+      setUpDates: 'Inserisci le date',
+      setUpStep1: 'Come vuoi iniziare?',
+      setUpStep2: 'Scegli la data',
+      methodLmp: 'Inizio dell\u2019ultimo ciclo',
+      methodLmpDesc: 'Calcoleremo la data prevista del parto e le settimane da questa data.',
+      methodDue: 'Conosco la mia data prevista del parto',
+      methodDueDesc: 'Calcoleremo le settimane di gravidanza dalla tua data prevista.',
     },
     calendar: {
       title: 'Calendario',
@@ -324,11 +396,11 @@ const it: MessageTree = core(
     },
     labor: {
       title: 'Timer contrazioni',
-      tapStart: 'Tocca all’inizio di una contrazione',
+      tapStart: 'Tocca all\u2019inizio di una contrazione',
       tapStop: 'Tocca alla fine',
-      tapNext: 'Tocca all’inizio della successiva',
+      tapNext: 'Tocca all\u2019inizio della successiva',
       phaseOn: 'Contrazione',
-      phaseRest: 'Tra una e l’altra',
+      phaseRest: 'Tra una e l\u2019altra',
       phaseIdle: 'Pronto',
     },
     ask: {
@@ -336,6 +408,18 @@ const it: MessageTree = core(
       placeholder: 'Cibo, farmaco, sintomo o dubbio…',
       simpleHint:
         'Domande su cibo, farmaci o sintomi. Non è un parere medico.',
+      autoHint:
+        'Le risposte usano IA gratuita. I limiti di utilizzo possono essere raggiunti — le risposte potrebbero interrompersi. Riprova più tardi o cambia provider nelle Impostazioni.',
+    },
+    about: {
+      title: 'Info',
+      tagline: 'Un semplice assistente di gravidanza per il tuo telefono',
+      disclaimerTitle: 'Nota importante',
+      disclaimerBody:
+        'BabyWise non è un parere medico. Le risposte IA possono essere errate. Consulta sempre il tuo medico o ostetrica.',
+      privacyTitle: 'La tua privacy',
+      privacyLead:
+        'Nessun account, nessuna copia nel cloud — le tue note restano sul dispositivo.',
     },
     settings: {
       title: 'Impostazioni',
@@ -345,7 +429,7 @@ const it: MessageTree = core(
       showMascot: 'Mascotte',
       showMascotLabel: 'Mascotte frutto (gravidanza)',
       showBabyMascotLabel: 'Testina del bimbo (dopo la nascita)',
-      hidePregnancyLabel: 'Nascondi l’interfaccia gravidanza',
+      hidePregnancyLabel: 'Nascondi l\u2019interfaccia gravidanza',
     },
   }
 );
@@ -380,6 +464,15 @@ const pt: MessageTree = core(
       todayReminders: 'Hoje',
       postpartumTitle: 'Cuidar do bebé',
       chartsTitle: 'Tendências',
+      setUpTitle: 'Configurar a gravidez',
+      setUpSubtitle: 'Escolhe o que sabes — calcularemos a tua semana de gravidez. Tudo fica neste dispositivo.',
+      setUpDates: 'Configurar datas',
+      setUpStep1: 'Como queres começar?',
+      setUpStep2: 'Escolher a data',
+      methodLmp: 'Início do último período',
+      methodLmpDesc: 'Calcularemos a tua data prevista de parto e semanas a partir desta data.',
+      methodDue: 'Sei a minha data prevista de parto',
+      methodDueDesc: 'Calcularemos as semanas de gravidez a partir da tua data prevista.',
     },
     calendar: {
       title: 'Calendário',
@@ -421,6 +514,18 @@ const pt: MessageTree = core(
       placeholder: 'Comida, medicamento, sintoma ou dúvida…',
       simpleHint:
         'Pergunta sobre comida, medicamentos ou sintomas. Não é conselho médico.',
+      autoHint:
+        'As respostas usam IA gratuita. Os limites podem ser atingidos — as respostas podem pausar. Tenta mais tarde ou muda de fornecedor nas Definições.',
+    },
+    about: {
+      title: 'Acerca',
+      tagline: 'Um simples assistente de gravidez para o teu telemóvel',
+      disclaimerTitle: 'Nota importante',
+      disclaimerBody:
+        'BabyWise não é conselho médico. As respostas de IA podem estar erradas. Consulta sempre o teu médico ou parteira.',
+      privacyTitle: 'A tua privacidade',
+      privacyLead:
+        'Sem conta, sem cópia na nuvem — as tuas notas ficam no teu dispositivo.',
     },
     settings: {
       title: 'Definições',
@@ -465,6 +570,15 @@ const nl: MessageTree = core(
       todayReminders: 'Vandaag',
       postpartumTitle: 'Babyverzorging',
       chartsTitle: 'Trends',
+      setUpTitle: 'Zwangerschap instellen',
+      setUpSubtitle: 'Kies wat je weet — wij berekenen je zwangerschapsweek. Alles blijft op dit apparaat.',
+      setUpDates: 'Datums instellen',
+      setUpStep1: 'Hoe wil je beginnen?',
+      setUpStep2: 'Kies de datum',
+      methodLmp: 'Begin van laatste menstruatie',
+      methodLmpDesc: 'We berekenen je uitgerekende datum en weken vanaf deze datum.',
+      methodDue: 'Ik ken mijn uitgerekende datum',
+      methodDueDesc: 'We berekenen de zwangerschapsweken vanaf jouw uitgerekende datum.',
     },
     calendar: {
       title: 'Agenda',
@@ -506,6 +620,18 @@ const nl: MessageTree = core(
       placeholder: 'Eten, medicijn, symptoom of zorg…',
       simpleHint:
         'Vraag over eten, medicijnen of symptomen. Dit is geen medisch advies.',
+      autoHint:
+        'Antwoorden gebruiken gratis AI. Gebruikslimieten kunnen worden bereikt — antwoorden kunnen pauzeren. Probeer het later opnieuw of wissel van aanbieder in Instellingen.',
+    },
+    about: {
+      title: 'Over',
+      tagline: 'Een eenvoudige zwangerschapshulp voor je telefoon',
+      disclaimerTitle: 'Belangrijke opmerking',
+      disclaimerBody:
+        'BabyWise is geen medisch advies. AI-antwoorden kunnen onjuist zijn. Raadpleeg altijd je arts of verloskundige.',
+      privacyTitle: 'Jouw privacy',
+      privacyLead:
+        'Geen account, geen cloud-kopie — je notities blijven op je apparaat.',
     },
     settings: {
       title: 'Instellingen',
@@ -550,6 +676,15 @@ const pl: MessageTree = core(
       todayReminders: 'Dziś',
       postpartumTitle: 'Opieka nad dzieckiem',
       chartsTitle: 'Wykresy',
+      setUpTitle: 'Skonfiguruj ciążę',
+      setUpSubtitle: 'Wybierz, co wiesz — obliczymy twój tydzień ciąży. Wszystko zostaje na tym urządzeniu.',
+      setUpDates: 'Ustaw daty',
+      setUpStep1: 'Jak chcesz zacząć?',
+      setUpStep2: 'Wybierz datę',
+      methodLmp: 'Pierwszy dzień ostatniej miesiączki',
+      methodLmpDesc: 'Obliczymy termin porodu i tygodnie od tej daty.',
+      methodDue: 'Znam swój termin porodu',
+      methodDueDesc: 'Obliczymy tygodnie ciąży od twojego terminu.',
     },
     calendar: {
       title: 'Kalendarz',
@@ -591,6 +726,18 @@ const pl: MessageTree = core(
       placeholder: 'Jedzenie, lek, objaw lub obawa…',
       simpleHint:
         'Pytaj o jedzenie, leki lub objawy. To nie jest porada medyczna.',
+      autoHint:
+        'Odpowiedzi używają bezpłatnej AI. Limity użytkowania mogą być osiągnięte — odpowiedzi mogą się zatrzymać. Spróbuj później lub zmień dostawcę w Ustawieniach.',
+    },
+    about: {
+      title: 'O aplikacji',
+      tagline: 'Prosty pomocnik ciążowy na twój telefon',
+      disclaimerTitle: 'Ważna uwaga',
+      disclaimerBody:
+        'BabyWise nie jest poradą medyczną. Odpowiedzi AI mogą być błędne. Zawsze konsultuj się z lekarzem lub położną.',
+      privacyTitle: 'Twoja prywatność',
+      privacyLead:
+        'Bez konta, bez kopii w chmurze — twoje notatki zostają na urządzeniu.',
     },
     settings: {
       title: 'Ustawienia',
@@ -635,6 +782,15 @@ const sv: MessageTree = core(
       todayReminders: 'I dag',
       postpartumTitle: 'Bebisvård',
       chartsTitle: 'Trender',
+      setUpTitle: 'Konfigurera graviditeten',
+      setUpSubtitle: 'Välj vad du vet — vi beräknar din graviditetsvecka. Allt stannar på den här enheten.',
+      setUpDates: 'Ange datum',
+      setUpStep1: 'Hur vill du börja?',
+      setUpStep2: 'Välj datum',
+      methodLmp: 'Första dagen i senaste mens',
+      methodLmpDesc: 'Vi beräknar beräknat förlossningsdatum och veckor från detta datum.',
+      methodDue: 'Jag känner till mitt beräknade förlossningsdatum',
+      methodDueDesc: 'Vi beräknar graviditetsveckorna från ditt beräknade datum.',
     },
     calendar: {
       title: 'Kalender',
@@ -676,6 +832,18 @@ const sv: MessageTree = core(
       placeholder: 'Mat, läkemedel, symptom eller oro…',
       simpleHint:
         'Fråga om mat, läkemedel eller symptom. Det här är inte medicinsk rådgivning.',
+      autoHint:
+        'Svaren använder gratis AI. Användningsgränser kan nås — svaren kan pausa. Försök igen senare eller byt leverantör i Inställningar.',
+    },
+    about: {
+      title: 'Om',
+      tagline: 'En enkel graviditetshjälp för din telefon',
+      disclaimerTitle: 'Observera',
+      disclaimerBody:
+        'BabyWise är inte medicinsk rådgivning. AI-svar kan vara felaktiga. Rådfråga alltid din läkare eller barnmorska.',
+      privacyTitle: 'Din integritet',
+      privacyLead:
+        'Inget konto, ingen molnkopia — dina anteckningar stannar på enheten.',
     },
     settings: {
       title: 'Inställningar',

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { IndicatorKind, Locale } from '../core/types';
-import { indicatorLabel } from '../core/indicators/catalog';
+import { formatReadingNumber, indicatorLabel } from '../core/indicators/catalog';
 import {
   movingAverage,
   seriesMean,
@@ -48,11 +48,11 @@ export function ReadingChart({ kind, points, locale, unitHint, t }: Props) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
   const w = 340;
-  const h = 156;
-  const padL = 46;
-  const padR = 14;
-  const padT = 20;
-  const padB = 26;
+  const h = 176;
+  const padL = 44;
+  const padR = 16;
+  const padT = 28;
+  const padB = 34;
   const innerW = w - padL - padR;
   const innerH = h - padT - padB;
 
@@ -71,11 +71,11 @@ export function ReadingChart({ kind, points, locale, unitHint, t }: Props) {
     rawMax += 1;
   }
 
-  // Add 6% headroom and footroom so points don't clip against borders
+  // Headroom so points, avg label, and tooltip stay inside the viewBox
   const span = rawMax - rawMin || 1;
-  const min = Number((rawMin - span * 0.06).toFixed(1));
-  const max = Number((rawMax + span * 0.06).toFixed(1));
-  const mid = Number(((min + max) / 2).toFixed(1));
+  const min = rawMin - span * 0.14;
+  const max = rawMax + span * 0.14;
+  const mid = (min + max) / 2;
   const range = max - min || 1;
 
   const yAt = (v: number) => padT + innerH - ((v - min) / range) * innerH;
@@ -131,7 +131,8 @@ export function ReadingChart({ kind, points, locale, unitHint, t }: Props) {
             {indicatorLabel(kind, locale)}
           </strong>
           <span className="reading-count-pill">
-            {points.length} {t ? t('home.chartLogsShort') || 'records' : 'records'}
+            {points.length}{' '}
+            {t ? t('home.chartLogsShort') : 'records'}
           </span>
         </div>
 
@@ -443,7 +444,10 @@ export function ReadingChart({ kind, points, locale, unitHint, t }: Props) {
 }
 
 function formatNum(n: number): string {
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  const abs = Math.abs(n);
+  if (abs >= 100) return formatReadingNumber(n, 0);
+  if (abs >= 10) return formatReadingNumber(n, 1);
+  return formatReadingNumber(n, 3);
 }
 
 function shortDate(iso: string, locale?: Locale): string {

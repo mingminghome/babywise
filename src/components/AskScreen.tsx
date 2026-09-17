@@ -25,6 +25,7 @@ import { engineRunAsk } from '../core/ai/engine';
 import type { RateLimitMeta } from '../core/ai/types';
 import { prepareAskImage, type PreparedImage } from '../core/util/image';
 import { SafetyBadge } from './SafetyBadge';
+import { StyledCheckbox } from './ui/StyledCheckbox';
 import type { AppState } from '../hooks/useAppState';
 import type { AiProviderId, SafetyItem, SafetyResult } from '../core/types';
 
@@ -657,13 +658,17 @@ export function AskScreen({ state }: { state: AppState }) {
               {activeCount} / {availableContextItems.length}
             </span>
           </div>
-
           <button
             type="button"
-            className="btn btn-ghost btn-sm ask-context-toggle"
+            className="ask-context-toggle"
             onClick={() => setShowContextDetails(!showContextDetails)}
+            aria-expanded={showContextDetails}
           >
-            <span>{showContextDetails ? t('ask.hideAttachedDetails') : t('ask.attachedDetails')}</span>
+            <span>
+              {showContextDetails
+                ? t('ask.hideAttachedDetails')
+                : t('ask.attachedDetails')}
+            </span>
             {showContextDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
         </div>
@@ -700,29 +705,21 @@ export function AskScreen({ state }: { state: AppState }) {
         {/* Expandable context details (default folded) */}
         {showContextDetails && (
           <div className="ask-context-details">
-            <p className="ask-context-hint muted">{t('ask.tapToToggleContext')}</p>
-            <div className="ask-context-checklist">
+            <div className="ask-context-list">
               {availableContextItems.map((item) => {
                 const isIncluded = Boolean(activeFlags[item.key]);
                 return (
-                  <label
-                    key={item.key}
-                    className={`ask-context-checklist-item ${isIncluded ? 'is-included' : 'is-excluded'}`}
-                  >
-                    <input
-                      type="checkbox"
+                  <div key={item.key} className="ask-context-item">
+                    <StyledCheckbox
+                      id={`ask-ctx-${item.key}`}
                       checked={isIncluded}
                       onChange={() => toggleContextKey(item.key)}
+                      label={`${item.icon ? item.icon + '\u00a0' : ''}${t(`ask.context.${item.key}`)}`}
                     />
-                    <div className="ask-context-checklist-content">
-                      <span className="ask-context-item-name">
-                        {item.icon} {t(`ask.context.${item.key}`)}
-                      </span>
-                      <span className="ask-context-item-detail muted">
-                        {item.detail}
-                      </span>
-                    </div>
-                  </label>
+                    {isIncluded && item.detail && (
+                      <p className="ask-context-preview muted">{item.detail}</p>
+                    )}
+                  </div>
                 );
               })}
             </div>

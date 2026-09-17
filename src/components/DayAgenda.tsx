@@ -30,6 +30,7 @@ import {
   sumIndicatorOnDay,
 } from '../core/indicators/series';
 import {
+  formatReadingNumber,
   getIndicatorMeta,
   indicatorLabel,
 } from '../core/indicators/catalog';
@@ -69,9 +70,9 @@ function formatReadingValue(e: CalendarEvent): string {
   if (!ind) return e.title;
   const meta = getIndicatorMeta(ind.kind);
   if (meta.dual && ind.valueSecondary != null) {
-    return `${ind.value}/${ind.valueSecondary}`;
+    return `${formatReadingNumber(ind.value)}/${formatReadingNumber(ind.valueSecondary)}`;
   }
-  return String(ind.value);
+  return formatReadingNumber(ind.value);
 }
 
 /**

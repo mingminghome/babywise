@@ -288,42 +288,6 @@ export function BabyProfileSheet({
         </div>
 
         <div className="sheet-actions-sticky">
-          {editing && onDelete && (
-            <div className="stack" style={{ marginBottom: '0.4rem' }}>
-              {!confirmDelete ? (
-                <button
-                  type="button"
-                  className="btn btn-danger btn-block"
-                  onClick={() => setConfirmDelete(true)}
-                >
-                  {t('baby.delete')}
-                </button>
-              ) : (
-                <>
-                  <p className="muted" style={{ fontSize: '0.85rem' }}>
-                    {t('baby.deleteConfirm', { name: editing.name })}
-                  </p>
-                  <div className="sheet-actions-row">
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => setConfirmDelete(false)}
-                    >
-                      {t('calendar.cancel')}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => onDelete(editing.id)}
-                    >
-                      {t('baby.delete')}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
           <div className="sheet-actions-row">
             <button type="button" className="btn btn-ghost" onClick={onClose}>
               {t('calendar.cancel')}
@@ -337,6 +301,42 @@ export function BabyProfileSheet({
               {t('baby.save')}
             </button>
           </div>
+
+          {editing && onDelete && (
+            <div className="baby-delete-row">
+              {!confirmDelete ? (
+                <button
+                  type="button"
+                  className="baby-delete-trigger"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  {t('baby.delete')}
+                </button>
+              ) : (
+                <div className="baby-delete-confirm">
+                  <span className="baby-delete-confirm-text">
+                    {t('baby.deleteConfirm', { name: editing.name })}
+                  </span>
+                  <div className="baby-delete-confirm-actions">
+                    <button
+                      type="button"
+                      className="baby-delete-cancel"
+                      onClick={() => setConfirmDelete(false)}
+                    >
+                      {t('calendar.cancel')}
+                    </button>
+                    <button
+                      type="button"
+                      className="baby-delete-confirm-btn"
+                      onClick={() => onDelete(editing.id)}
+                    >
+                      {t('baby.delete')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>,

@@ -1,4 +1,5 @@
 import type { CalendarEvent, IndicatorKind } from '../types';
+import { roundReading } from './catalog';
 
 export type SeriesPoint = {
   date: string;
@@ -90,11 +91,9 @@ export function indicatorSeries(
     .toSorted((a, b) => a.date.localeCompare(b.date))
     .map((a) => ({
       date: a.date,
-      value: sumKind ? a.sum : a.sum / a.count,
+      value: roundReading(sumKind ? a.sum : a.sum / a.count),
       valueSecondary: a.has2
-        ? sumKind
-          ? a.sum2
-          : a.sum2 / a.count
+        ? roundReading(sumKind ? a.sum2 : a.sum2 / a.count)
         : undefined,
       eventId: a.eventId,
       sampleCount: a.count,

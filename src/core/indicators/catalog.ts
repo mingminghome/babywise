@@ -40,6 +40,21 @@ export function indicatorLabel(kind: IndicatorKind, locale: Locale): string {
   return zh ? map[kind][1] : map[kind][0];
 }
 
+/** Strip float noise (3.3150000000000004 → 3.315). */
+export function formatReadingNumber(n: number, maxDecimals = 3): string {
+  if (!Number.isFinite(n)) return '';
+  const f = 10 ** maxDecimals;
+  const rounded = Math.round((n + Number.EPSILON) * f) / f;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return String(rounded);
+}
+
+export function roundReading(n: number, maxDecimals = 3): number {
+  if (!Number.isFinite(n)) return n;
+  const f = 10 ** maxDecimals;
+  return Math.round((n + Number.EPSILON) * f) / f;
+}
+
 export function formatIndicatorDisplay(
   kind: IndicatorKind,
   value: number,
@@ -53,9 +68,9 @@ export function formatIndicatorDisplay(
       ? customLabel.trim()
       : indicatorLabel(kind, locale);
   if (kind === 'blood_pressure' && valueSecondary != null) {
-    return `${name} ${value}/${valueSecondary} ${unit}`.trim();
+    return `${name} ${formatReadingNumber(value)}/${formatReadingNumber(valueSecondary)} ${unit}`.trim();
   }
-  return `${name} ${value}${unit ? ` ${unit}` : ''}`.trim();
+  return `${name} ${formatReadingNumber(value)}${unit ? ` ${unit}` : ''}`.trim();
 }
 
 export function getIndicatorMeta(kind: IndicatorKind): IndicatorMeta {

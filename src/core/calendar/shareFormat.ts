@@ -4,6 +4,7 @@
 import { getCompletion } from './store';
 import { eventTimeLabel, statusLabelKey } from './meta';
 import {
+  formatReadingNumber,
   getIndicatorMeta,
   indicatorLabel,
 } from '../indicators/catalog';
@@ -19,9 +20,9 @@ function formatReadingValue(e: CalendarEvent): string {
   if (!ind) return '';
   const meta = getIndicatorMeta(ind.kind);
   if (meta.dual && ind.valueSecondary != null) {
-    return `${ind.value}/${ind.valueSecondary}${ind.unit ? ` ${ind.unit}` : ''}`;
+    return `${formatReadingNumber(ind.value)}/${formatReadingNumber(ind.valueSecondary)}${ind.unit ? ` ${ind.unit}` : ''}`;
   }
-  return `${ind.value}${ind.unit ? ` ${ind.unit}` : ''}`;
+  return `${formatReadingNumber(ind.value)}${ind.unit ? ` ${ind.unit}` : ''}`;
 }
 
 function lineForEvent(
