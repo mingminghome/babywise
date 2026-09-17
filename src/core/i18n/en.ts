@@ -5,7 +5,7 @@ export type MessageTree = {
 
 export const en: MessageTree = {
   appName: 'BabyWise',
-  tagline: 'Your cozy pregnancy companion',
+  tagline: 'Your cozy pregnancy and baby companion',
   tabs: {
     home: 'Home',
     calendar: 'Calendar',
@@ -599,16 +599,16 @@ export const en: MessageTree = {
   },
   about: {
     title: 'About',
-    tagline: 'A simple pregnancy helper for your phone',
+    tagline: 'A simple pregnancy and baby helper for your phone',
     intro:
-      'BabyWise helps you track pregnancy weeks, log meds and notes, photograph labels, share calendar items, and ask if something is safe — with your personal diary staying on this device.',
+      'BabyWise helps you track pregnancy weeks, time contractions, log a born baby (feeds, diapers, sleep, growth), keep one calendar for both, photograph labels, and ask about food, medicine, or symptoms — with your personal diary staying on this device.',
     privacyTitle: 'Your privacy',
     privacyLead:
       'We keep things simple: no account, and your personal notes stay on your phone or computer.',
     privacyBullet1:
-      'Your dates, calendar, medicine logs, Ask history, and settings are saved only in this browser on your device.',
+      'Your dates, babies, calendar, labor sessions, medicine logs, Ask history, and settings are saved only in this browser on your device.',
     privacyBullet2:
-      'There is no login and no cloud copy of your pregnancy diary.',
+      'There is no login and no cloud copy of your pregnancy or baby diary.',
     privacyBullet3:
       'You can wipe everything anytime with Clean local data in Settings.',
     privacyBullet4:
@@ -622,14 +622,14 @@ export const en: MessageTree = {
       'If we never get your diary, we can’t lose it or share it. That’s the idea.',
     designLocalTitle: 'What stays on your device',
     designLocalBody:
-      'After the app loads, your dates, calendar items, language, and theme are saved only in this browser. Closing the tab does not send that info to us. Clear site data or use Clean local data to remove it.',
+      'After the app loads, your dates, baby profiles, calendar items, labor sessions, language, and theme are saved only in this browser. Closing the tab does not send that info to us. Clear site data or use Clean local data to remove it.',
     designWhyTitle: 'Why we built it this way',
-    designWhy1: 'Pregnancy and medicine notes are private — so they stay with you.',
+    designWhy1: 'Pregnancy, labor, and baby notes are private — so they stay with you.',
     designWhy2: 'No account means no password to worry about.',
     designWhy3: 'You’re in control: use it, and delete local data whenever you want.',
     disclaimerTitle: 'Please note',
     disclaimerBody:
-      'BabyWise is not medical advice. Ask answers and any AI text can be wrong. Always check with your doctor or midwife.',
+      'BabyWise is not medical advice. Ask answers, typical-range recs, and any AI text can be wrong. Always check with your doctor or midwife.',
     openSourceTitle: 'Open source · MIT',
     openSourceBody:
       'This project is free software under the MIT License. You may use, copy, modify, merge, publish, distribute, and sublicense it — including for your own deployment with your own API keys.',

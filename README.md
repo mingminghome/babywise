@@ -2,13 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-Local-first pregnancy companion: week tracker, medicine & appointment calendar, photo label **Ask**, calendar **share/copy**, and **export/import** backup.
+Local-first pregnancy and baby companion: week tracker, shared calendar, born-baby diary, contraction timer, photo label **Ask**, calendar **share/copy**, and **export/import** backup.
 
 **Live demo:** [https://babywise.pages.dev](https://babywise.pages.dev)  
 **License:** [MIT](./LICENSE) · **Security:** [SECURITY.md](./SECURITY.md)
 
 **Production path:** static SPA on **Cloudflare Pages** + stateless **Pages Function** AI proxy (`/api/ask`).  
-User diary data (profile, calendar, Ask history) stays in the browser — **never stored on the server as a medical record**.
+User diary data (profile, babies, calendar, labor sessions, Ask history) stays in the browser — **never stored on the server as a medical record**.
 
 ```
 Browser  →  Pages (SPA)  →  localStorage (+ optional JSON backup file)
@@ -27,11 +27,13 @@ Useful for:
 | Area | What you get |
 |------|----------------|
 | **Week tracker** | LMP or due date → week · day · trimester |
-| **Calendar** | Medicines & appointments by date and/or **baby week** |
+| **Baby diary** | Multiple babies: feeds, diapers, sleep, pumping, tummy time, spit-up, growth |
+| **Labor timer** | Contraction stopwatch with 5-1-1 / 4-1-1 / custom helper (in **Tools**) |
+| **Calendar** | One diary for pregnancy and baby logs (date and/or pregnancy week) |
 | **Share / copy** | Multi-select day items → OS share or clipboard |
-| **Export / import** | Full JSON backup of diary (profile, calendar, settings, Ask history) |
-| **Ask** | Text and/or photo of a label → ingredient-style breakdown (AI proxy) |
-| **Readings** | Weight, blood pressure, and other notes |
+| **Export / import** | Full JSON backup (profile, babies, calendar, labor, settings, Ask history) |
+| **Ask** | Text and/or photo → food, medicine, symptom, or newborn-care questions |
+| **Readings** | Weight, blood pressure, growth, and other notes (daily average + mean line) |
 | **Privacy** | No account; diary stays on-device |
 
 AI answers can be wrong — always confirm with a clinician. Details: [SECURITY.md](./SECURITY.md) · [privacy.html](./public/privacy.html).
@@ -41,17 +43,20 @@ AI answers can be wrong — always confirm with a clinician. Details: [SECURITY.
 ## Features
 
 - **Pregnancy calculator** — LMP or due date → week · day · trimester
-- **Calendar** — schedule by calendar date and/or **baby week** (e.g. medicine until week 12)
+- **Born-baby care** — multiple baby profiles (twins/siblings); feed, diaper, sleep, pump, tummy time, spit-up, growth/temp
+- **Labor timer** — Tools tab; start/stop stopwatch, rest vs contraction labels, 5-1-1 / 4-1-1 / custom “when to go” helper
+- **Calendar** — one diary for pregnancy and baby; filter All / Pregnancy / each baby; schedule by date and/or pregnancy week
+- **Postpartum Home** — Settings can hide pregnancy week UI after birth
 - **Share / copy** — multi-select day items; OS share sheet (IM apps) or clipboard
-- **Export / import** — download or share a JSON backup; import with **replace all** or **merge calendar**
+- **Export / import** — download or share a JSON backup; import with **replace all** or **merge**
 - **Medicine autocomplete** — bilingual (EN / 繁中), common pregnancy-related names
-- **Ask** — text and/or photo (labels); multi-ingredient breakdown; Western + TCM-style badges; free-server rate-limit labels
+- **Ask** — text and/or photo; food, medicine, symptoms/worries, newborn logs; Western + TCM-style badges
 - **Providers** — Gemini, OpenAI, Grok, Claude (server keys only; users never paste keys)
-- **Readings** — weight, blood pressure, and other indicators
+- **Readings** — weight, blood pressure, length, head circumference, and other indicators; same-day **mean** + chart mean line
 - **Notifications** — local reminders via service worker + Notification API (no push server); test button in Settings
-- **Navigation** — bottom: Home · Calendar · Ask; top-right icons: About · Settings · optional “Buy me a pint”
-- **Clean local data** — selective or full wipe
-- **i18n** — English + Traditional Chinese
+- **Navigation** — bottom: Home · Calendar · Tools · Ask (+ **Baby** when baby care is on); top-right: About · Settings
+- **Clean local data** — selective or full wipe (including babies and labor sessions)
+- **i18n** — English, Traditional Chinese, plus EU shells (DE, FR, ES, IT, PT, NL, PL, SV; missing strings fall back to English)
 
 ### Navigation (UX)
 
@@ -59,7 +64,7 @@ Same family pattern as OriginWise:
 
 | Control | Tabs / actions |
 |---------|----------------|
-| **Bottom nav** | Home · Calendar · Ask (primary tools) |
+| **Bottom nav** | Home · Calendar · Tools · Ask (primary); **Baby** appears after a born-baby profile + Settings switch |
 | **Top-right icons** | About · Settings (+ pint chip when `VITE_BUY_ME_A_PINT_URL` is set) |
 | **About / Settings** | Top-level screens (no intermediate Info hub) |
 
@@ -77,7 +82,7 @@ Settings → **Export & import**:
 - **Download backup** / **Share backup** — `babywise-backup-YYYYMMDD.json`
 - **Import** — replace all local stores, or merge calendar + Ask history by id
 
-Format marker: `"format": "babywise-backup"`, `"version": 1`. See `src/core/storage/backup.ts`.
+Format marker: `"format": "babywise-backup"`, `"version": 1`. Includes profile, events, settings, Ask history, **babies**, and **labor sessions**. See `src/core/storage/backup.ts`.
 
 ---
 

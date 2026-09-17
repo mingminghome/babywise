@@ -63,7 +63,7 @@ Plain `npm run dev` (Vite only) stubs `/api/ask` with “not configured” — t
 
 ## Privacy notes
 
-- Pregnancy calendar / meds stay in **localStorage** on the device  
+- Pregnancy calendar, baby logs, labor sessions, and meds stay in **localStorage** on the device  
 - Ask sends only the prompt you build (question + optional context flags)  
 - The Worker does not store chat history as a medical record  
 - Usage counts against **your** project quota for each configured key  

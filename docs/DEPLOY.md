@@ -218,4 +218,4 @@ npm run pages:dev
 |---------|----------|
 | Cloudflare Pages Free | Fine for SPA + Functions |
 | Gemini free tier | Counts against the **project** for `GEMINI_API_KEY` |
-| Privacy | No pregnancy DB; Ask prompts are not stored as medical records |
+| Privacy | No pregnancy/baby DB; Ask prompts are not stored as medical records |

@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BabyWise — Local-first pregnancy companion</title>
+    <title>BabyWise — Local-first pregnancy and baby companion</title>
     <meta
       name="description"
-      content="BabyWise is a local-first pregnancy companion: week tracking, medicine and appointment calendar, and free-tier Gemini Ask answers. Personal data stays on your device. Not medical advice."
+      content="BabyWise is a local-first pregnancy and baby companion: week tracking, shared calendar, born-baby diary, contraction timer, and Ask. Personal data stays on your device. Not medical advice."
     />
     <meta
       name="robots"
@@ -20,10 +20,10 @@
 
     <!-- Open Graph -->
     <meta property="og:site_name" content="BabyWise" />
-    <meta property="og:title" content="BabyWise — Local-first pregnancy companion" />
+    <meta property="og:title" content="BabyWise — Local-first pregnancy and baby companion" />
     <meta
       property="og:description"
-      content="Week tracking, calendar, and pregnancy-safety Ask. Data stays on your device."
+      content="Week tracking, baby diary, labor timer, calendar, and Ask. Data stays on your device."
     />
     <meta property="og:url" content="https://babywise.pages.dev/home.html" />
     <meta property="og:type" content="website" />
@@ -37,10 +37,10 @@
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="BabyWise — Local-first pregnancy companion" />
+    <meta name="twitter:title" content="BabyWise — Local-first pregnancy and baby companion" />
     <meta
       name="twitter:description"
-      content="Week tracking, calendar, and pregnancy-safety Ask. Data stays on your device."
+      content="Week tracking, baby diary, labor timer, calendar, and Ask. Data stays on your device."
     />
     <meta name="twitter:image" content="https://babywise.pages.dev/logo-120.png" />
     <meta name="twitter:image:alt" content="BabyWise logo" />
@@ -58,8 +58,8 @@
         "applicationCategory": "HealthApplication",
         "operatingSystem": "Web",
         "url": "https://babywise.pages.dev/",
-        "description": "BabyWise is a local-first pregnancy companion for week tracking, medicine and appointment calendar, and free-tier Gemini Ask. Personal health data stays on the user device. Not medical advice.",
-        "inLanguage": ["en", "zh-Hant"],
+        "description": "BabyWise is a local-first pregnancy and baby companion for week tracking, shared calendar, born-baby care logs, contraction timer, and Ask. Personal health data stays on the user device. Not medical advice.",
+        "inLanguage": ["en", "zh-Hant", "de", "fr", "es", "it", "pt", "nl", "pl", "sv"],
         "isAccessibleForFree": true,
         "offers": {
           "@type": "Offer",
@@ -68,9 +68,11 @@
         },
         "featureList": [
           "Pregnancy week and trimester tracking",
-          "Medicine and appointment calendar",
+          "Born-baby care logs for multiple babies",
+          "Contraction timer",
+          "Shared medicine and appointment calendar",
           "Local-first privacy (data stays on device)",
-          "Optional free-tier Gemini Ask for pregnancy-safety questions"
+          "Ask for food, medicine, symptoms, and newborn-care questions"
         ],
         "privacyPolicy": "https://babywise.pages.dev/privacy.html",
         "termsOfService": "https://babywise.pages.dev/terms.html"
@@ -194,7 +196,7 @@
         <img src="/logo-120.png" width="56" height="56" alt="BabyWise logo" />
         <div>
           <h1>BabyWise</h1>
-          <p class="tag">Local-first pregnancy companion</p>
+          <p class="tag">Local-first pregnancy and baby companion</p>
         </div>
       </header>
 
@@ -202,8 +204,8 @@
         <h2>Application purpose</h2>
         <p>
           The purpose of the <strong>BabyWise</strong> application is to help
-          pregnant people and their partners track pregnancy progress and manage
-          day-to-day pregnancy care logistics on their own device.
+          pregnant people, new parents, and their partners track pregnancy
+          progress and day-to-day baby care on their own device.
         </p>
         <p><strong>BabyWise</strong> provides:</p>
         <ul>
@@ -211,17 +213,25 @@
             Pregnancy week and day tracking from last menstrual period or due
             date
           </li>
-          <li>A calendar for medicines, appointments, and personal notes</li>
+          <li>
+            A shared calendar for medicines, appointments, notes, and baby care
+            logs
+          </li>
+          <li>
+            Born-baby diary (feeds, diapers, sleep, growth) for one or more
+            children
+          </li>
+          <li>A contraction timer with an informational 5-1-1 / 4-1-1 helper</li>
           <li>Simple reading logs and optional local reminders on this device</li>
           <li>
-            An in-app <strong>Ask</strong> feature for pregnancy-safety style
-            information (not medical advice)
+            An in-app <strong>Ask</strong> feature for food, medicine, symptoms,
+            and newborn-care questions (not medical advice)
           </li>
         </ul>
         <p>
-          BabyWise is <strong>local-first</strong>: profile, calendar, and
-          medicine logs stay in the browser on the user’s device. We do not
-          operate a cloud database of personal pregnancy journals.
+          BabyWise is <strong>local-first</strong>: profile, babies, calendar,
+          labor sessions, and medicine logs stay in the browser on the user’s
+          device. We do not operate a cloud database of personal journals.
         </p>
         <p class="muted">
           Not medical advice. Always confirm with a qualified clinician.
@@ -233,17 +243,17 @@
         <h2>What is BabyWise?</h2>
         <p>
           <strong>BabyWise</strong> is a free web application for people who are
-          pregnant or supporting a pregnancy. The product name displayed to
-          users is exactly <strong>BabyWise</strong>.
+          pregnant, supporting a pregnancy, or caring for a newborn. The product
+          name displayed to users is exactly <strong>BabyWise</strong>.
         </p>
       </section>
 
       <section class="card">
         <h2>How Ask works</h2>
         <p>
-          Ask sends your question to our Worker, which calls free-tier Gemini
-          with a server API key. You do not sign in with Google and you do not
-          paste an API key. Calendar and medicine data stay on your device.
+          Ask sends your question to our Worker, which calls the AI provider you
+          chose (for example Gemini) with a server API key. You do not paste an
+          API key. Calendar, baby logs, and medicine data stay on your device.
         </p>
         <p>
           See the
@@ -255,12 +265,11 @@
       <section class="card zh">
         <h2>BabyWise 是什麼？（繁體中文）</h2>
         <p>
-          <strong>BabyWise</strong> 是免費的<strong>本機優先孕期小幫手</strong>網頁應用：週數追蹤、用藥與產檢日曆、簡易數值與本機提醒，以及「詢問」（免費
-          Gemini 孕期安全相關說明，非醫療建議）。
+          <strong>BabyWise</strong> 是免費的<strong>本機優先孕期與寶寶小幫手</strong>網頁應用：週數追蹤、共用日曆、已出生寶寶照護紀錄、宮縮計時、簡易數值與本機提醒，以及「詢問」（食物、藥物、症狀或新生兒照護說明，非醫療建議）。
         </p>
         <p>
-          個人檔案、日曆與用藥紀錄預設只存在你的瀏覽器。詢問由伺服器呼叫
-          Gemini，不會把你的孕期日記建成伺服器端病歷。詳見
+          個人檔案、寶寶、日曆、宮縮與用藥紀錄預設只存在你的瀏覽器。詢問由伺服器呼叫
+          AI 供應商，不會把你的日記建成伺服器端病歷。詳見
           <a href="/privacy.html">隱私權政策</a>與
           <a href="/terms.html">服務條款</a>。
         </p>

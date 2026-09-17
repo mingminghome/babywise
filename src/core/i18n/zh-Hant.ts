@@ -2,7 +2,7 @@ import type { MessageTree } from './en';
 
 export const zhHant = {
   appName: 'BabyWise',
-  tagline: '溫暖的孕期小幫手',
+  tagline: '溫暖的孕期與寶寶小幫手',
   tabs: {
     home: '首頁',
     calendar: '日曆',
@@ -578,13 +578,13 @@ export const zhHant = {
   },
   about: {
     title: '關於',
-    tagline: '簡單好用的孕期小幫手',
+    tagline: '簡單好用的孕期與寶寶小幫手',
     intro:
-      'BabyWise 幫你追蹤孕期週數、記錄用藥與備註、拍攝標籤、分享日曆項目，並詢問是否安全——個人日記會留在這部裝置上。',
+      'BabyWise 幫你追蹤孕期週數、宮縮計時、記錄已出生寶寶（餵奶、尿布、睡眠、生長）、共用一本日記日曆、拍攝標籤，並詢問食物、藥物或症狀——個人日記會留在這部裝置上。',
     privacyTitle: '你的隱私',
     privacyLead: '我們把事情做得很單純：不用註冊帳號，個人紀錄也只留在你的手機或電腦。',
-    privacyBullet1: '日期、日曆、用藥紀錄、詢問歷史與設定，只存在此瀏覽器、這部裝置裡。',
-    privacyBullet2: '沒有登入，也不會把你的孕期日記備份到雲端。',
+    privacyBullet1: '日期、寶寶檔案、日曆、宮縮紀錄、用藥、詢問歷史與設定，只存在此瀏覽器、這部裝置裡。',
+    privacyBullet2: '沒有登入，也不會把你的孕期或寶寶日記備份到雲端。',
     privacyBullet3: '可隨時在設定裡用「清除本機資料」全部刪掉。',
     privacyBullet4:
       '使用「詢問」時，問題（及可選照片）只用於取得該次回答。我們不會把對話或照片當成病歷保存。',
@@ -596,9 +596,9 @@ export const zhHant = {
     designLead: '如果我們從來沒收到你的日記，就無法弄丟或外流——就是這個簡單的想法。',
     designLocalTitle: '什麼會留在你的裝置',
     designLocalBody:
-      'App 載入後，日期、日曆項目、語言與主題只存在此瀏覽器。關閉分頁不會把這些資料傳給我們。清除網站資料，或使用「清除本機資料」，就可以移除。',
+      'App 載入後，日期、寶寶檔案、日曆、宮縮紀錄、語言與主題只存在此瀏覽器。關閉分頁不會把這些資料傳給我們。清除網站資料，或使用「清除本機資料」，就可以移除。',
     designWhyTitle: '為什麼這樣做',
-    designWhy1: '孕期與用藥備註很私密——所以資料跟你在一起。',
+    designWhy1: '孕期、產程與寶寶備註很私密——所以資料跟你在一起。',
     designWhy2: '沒有帳號，就不用擔心密碼外洩。',
     designWhy3: '你自己掌控：想用就用，想刪本機資料隨時可以刪。',
     disclaimerTitle: '請注意',
