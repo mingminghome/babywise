@@ -556,7 +556,7 @@ export function AskScreen({ state }: { state: AppState }) {
       const queryLabel =
         question ||
         out.result.title ||
-        (settings.locale === 'zh-Hant' ? '（照片）' : '(photo)');
+        t('ask.photoQuery');
       pushAskHistory({
         id: crypto.randomUUID(),
         query: queryLabel.slice(0, 120),

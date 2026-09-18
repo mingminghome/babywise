@@ -41,6 +41,8 @@ import { BabyLogSheet, type BabyLogMode } from './BabyLogSheet';
 import { BabyProfileSheet } from './BabyProfileSheet';
 import { BornBabyMascot } from './BornBabyMascot';
 import { ReadingChart } from './ReadingChart';
+import { BabySummaryCards } from './BabySummaryCards';
+import { FoldCard } from './FoldCard';
 import type { AppState } from '../hooks/useAppState';
 import type { CalendarEvent, DiaperKind, SpitupAmount } from '../core/types';
 
@@ -248,10 +250,10 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
     const ms = Date.now() - Date.parse(e.takenAt ?? e.createdAt);
     if (!Number.isFinite(ms) || ms < 0) return e.title;
     const min = Math.floor(ms / 60_000);
-    if (min < 1) return locale === 'zh-Hant' ? '剛才' : 'just now';
-    if (min < 60) return locale === 'zh-Hant' ? `${min} 分前` : `${min} min ago`;
+    if (min < 1) return t('baby.justNow');
+    if (min < 60) return t('baby.minutesAgo', { n: min });
     const h = Math.floor(min / 60);
-    return locale === 'zh-Hant' ? `${h} 小時前` : `${h}h ago`;
+    return t('baby.hoursAgo', { n: h });
   };
 
   const askRecs = () => {
@@ -430,10 +432,12 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
             </section>
           )}
 
-          <section className="card span-2 baby-quick-card" aria-label={t('calendar.quickLog')}>
-            <div className="section-head">
-              <h2 className="section-title">{t('calendar.quickLog')}</h2>
-            </div>
+          <FoldCard
+            foldId="baby-quick"
+            title={t('calendar.quickLog')}
+            t={t}
+            className="card span-2 baby-quick-card"
+          >
             <div className="quick-log-grid baby-quick">
               <button
                 type="button"
@@ -444,7 +448,7 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
                 }}
               >
                 <span className="quick-log-icon is-feed" aria-hidden>
-                  <Milk size={20} />
+                  <Milk size={16} />
                 </span>
                 <span className="quick-log-label">{t('baby.logFeed')}</span>
               </button>
@@ -457,7 +461,7 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
                 }}
               >
                 <span className="quick-log-icon is-pump" aria-hidden>
-                  <Droplet size={20} />
+                  <Droplet size={16} />
                 </span>
                 <span className="quick-log-label">{t('baby.logPump')}</span>
               </button>
@@ -467,7 +471,7 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
                 onClick={toggleSleep}
               >
                 <span className="quick-log-icon is-sleep" aria-hidden>
-                  <Moon size={20} />
+                  <Moon size={16} />
                 </span>
                 <span className="quick-log-label">
                   {sleeping ? t('baby.logSleepStop') : t('baby.logSleepStart')}
@@ -479,7 +483,7 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
                 onClick={toggleTummy}
               >
                 <span className="quick-log-icon is-tummy" aria-hidden>
-                  <PersonStanding size={20} />
+                  <PersonStanding size={16} />
                 </span>
                 <span className="quick-log-label">
                   {tummying ? t('baby.logTummyStop') : t('baby.logTummyStart')}
@@ -494,7 +498,7 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
                 }}
               >
                 <span className="quick-log-icon is-indicator" aria-hidden>
-                  <Ruler size={20} />
+                  <Ruler size={16} />
                 </span>
                 <span className="quick-log-label">{t('baby.logReading')}</span>
               </button>
@@ -551,7 +555,14 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
               <Undo2 size={16} />
               {t('baby.undo')}
             </button>
-          </section>
+          </FoldCard>
+
+          <BabySummaryCards
+            baby={baby}
+            events={events}
+            t={t}
+            locale={locale}
+          />
 
           <div className="row-actions home-quick-actions span-2">
             <button type="button" className="btn btn-ghost" onClick={addCheckups}>
@@ -574,8 +585,7 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
           )}
 
           {charts.length > 0 && (
-            <section className="card span-2">
-              <h2 className="section-title">{t('baby.chartsTitle')}</h2>
+            <FoldCard foldId="baby-charts" title={t('baby.chartsTitle')} t={t}>
               <div className="charts-stack">
                 {charts.map(({ kind, points }) => (
                   <ReadingChart
@@ -588,11 +598,10 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
                   />
                 ))}
               </div>
-            </section>
+            </FoldCard>
           )}
 
-          <section className="card span-2">
-            <h2 className="section-title">{t('baby.timeline')}</h2>
+          <FoldCard foldId="baby-timeline" title={t('baby.timeline')} t={t}>
             {todayLogs.length === 0 ? (
               <p className="muted">{t('baby.timelineEmpty')}</p>
             ) : (
@@ -637,7 +646,7 @@ export function BabyScreen({ state, isHome: _isHome = false }: Props) {
                 })}
               </ul>
             )}
-          </section>
+          </FoldCard>
         </div>
       )}
 

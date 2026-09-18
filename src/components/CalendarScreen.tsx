@@ -42,6 +42,7 @@ import {
 import { localeTag } from '../core/i18n';
 import { todayIso, addDays } from '../core/pregnancy/engine';
 import { BabyLogSheet, type BabyLogMode } from './BabyLogSheet';
+import { FoldCard } from './FoldCard';
 import type { AppState } from '../hooks/useAppState';
 import type {
   CalendarEvent,
@@ -524,10 +525,13 @@ export function CalendarScreen({ state }: { state: AppState }) {
           </div>
         )}
 
-        <section className="quick-log-card" aria-label={t('calendar.quickLog')}>
-          <div className="quick-log-head">
-            <h2 className="quick-log-title">{t('calendar.quickLog')}</h2>
-          </div>
+        <FoldCard
+          foldId="cal-quick"
+          title={t('calendar.quickLog')}
+          t={t}
+          className="quick-log-card"
+          titleClassName="quick-log-title"
+        >
           {hasBabies && (
             <>
               <p className="quick-log-kicker">{t('calendar.quickBaby')}</p>
@@ -564,7 +568,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
                 </button>
             ))}
           </div>
-        </section>
+        </FoldCard>
       </div>
 
       {(view === 'week' || view === 'month') && (
@@ -601,7 +605,12 @@ export function CalendarScreen({ state }: { state: AppState }) {
         </div>
       )}
 
-      <section className="card cal-list-card">
+      <FoldCard
+        foldId={`cal-list-${view}`}
+        title={t(`calendar.${view === 'babyWeek' ? 'byBabyWeek' : view}`)}
+        t={t}
+        className="card cal-list-card"
+      >
         {view === 'today' && (
           <DayAgenda
             items={todayList}
@@ -729,7 +738,7 @@ export function CalendarScreen({ state }: { state: AppState }) {
             )}
           </>
         )}
-      </section>
+      </FoldCard>
 
       {showBackTop && (
         <button

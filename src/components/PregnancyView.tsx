@@ -34,6 +34,7 @@ import { getIndicatorMeta } from '../core/indicators/catalog';
 import { chartableSeries } from '../core/indicators/series';
 import { BabyFruitMascot } from './BabyFruitMascot';
 import { DayAgenda } from './DayAgenda';
+import { FoldCard } from './FoldCard';
 import { ReadingChart } from './ReadingChart';
 import { StyledDateField } from './ui/StyledDateField';
 import type { AppState } from '../hooks/useAppState';
@@ -347,8 +348,7 @@ export function PregnancyView({ state }: { state: AppState }) {
           </div>
 
           {showLaborCard && (
-            <section className="card span-2">
-              <h2 className="section-title">{t('labor.title')}</h2>
+            <FoldCard foldId="home-labor" title={t('labor.title')} t={t}>
               <p className="muted" style={{ fontSize: '0.85rem', marginBottom: 10 }}>
                 {t('home.laborHint')}
               </p>
@@ -360,12 +360,11 @@ export function PregnancyView({ state }: { state: AppState }) {
                 <Timer size={16} />
                 {openLabor ? t('home.laborResume') : t('home.laborOpen')}
               </button>
-            </section>
+            </FoldCard>
           )}
 
           {seriesList.length > 0 && (
-            <section className="card span-2">
-              <h2 className="section-title">{t('home.chartsTitle')}</h2>
+            <FoldCard foldId="home-charts" title={t('home.chartsTitle')} t={t}>
               <div className="charts-stack">
                 {seriesList.map(({ kind, points }) => (
                   <ReadingChart
@@ -378,11 +377,10 @@ export function PregnancyView({ state }: { state: AppState }) {
                   />
                 ))}
               </div>
-            </section>
+            </FoldCard>
           )}
 
-          <section className="card span-2">
-            <h2 className="section-title">{t('home.todayReminders')}</h2>
+          <FoldCard foldId="home-today" title={t('home.todayReminders')} t={t}>
             <DayAgenda
               items={todayItems}
               allEvents={motherEvents}
@@ -395,7 +393,7 @@ export function PregnancyView({ state }: { state: AppState }) {
               hideCharts
               enableShare
             />
-          </section>
+          </FoldCard>
         </div>
       )}
 

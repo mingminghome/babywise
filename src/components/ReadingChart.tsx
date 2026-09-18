@@ -128,7 +128,9 @@ export function ReadingChart({ kind, points, locale, unitHint, t }: Props) {
       <div className="reading-chart-head">
         <div className="reading-chart-meta">
           <strong className="reading-chart-title">
-            {indicatorLabel(kind, locale)}
+            {t
+              ? t(`calendar.indicatorKinds.${kind}`)
+              : indicatorLabel(kind, locale)}
           </strong>
           <span className="reading-count-pill">
             {points.length}{' '}
@@ -238,7 +240,9 @@ export function ReadingChart({ kind, points, locale, unitHint, t }: Props) {
               fill="var(--amber)"
               letterSpacing="0.04em"
             >
-              AVG {formatNum(mean)}
+              {t
+                ? t('home.chartAvgShort', { value: formatNum(mean) })
+                : `AVG ${formatNum(mean)}`}
             </text>
           </g>
         )}
@@ -426,12 +430,18 @@ export function ReadingChart({ kind, points, locale, unitHint, t }: Props) {
         <div className="reading-chart-legend">
           <span className="legend-item">
             <span className="legend-dot is-trend" />
-            <span>Trend</span>
+            <span>{t ? t('home.chartTrend') : 'Trend'}</span>
           </span>
           {mean != null && (
             <span className="legend-item">
               <span className="legend-dot is-avg" />
-              <span>Avg: {formatNum(mean)}{unitHint ? ` ${unitHint}` : ''}</span>
+              <span>
+                {t
+                  ? t('home.chartAvg', {
+                      value: `${formatNum(mean)}${unitHint ? ` ${unitHint}` : ''}`,
+                    })
+                  : `Avg ${formatNum(mean)}${unitHint ? ` ${unitHint}` : ''}`}
+              </span>
             </span>
           )}
         </div>

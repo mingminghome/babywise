@@ -180,30 +180,37 @@ export function buildDemoBabyEvents(babies: BabyProfile[]): CalendarEvent[] {
   const spit: SpitupAmount[] = ['small', 'medium', 'large'];
 
   for (const baby of babies) {
-    for (const dayOffset of [0, 1, 2]) {
+    const primary: FeedMethod = pick(['breast', 'bottle', 'formula']);
+    const logDays = Math.min(28, Math.max(14, randInt(18, 28)));
+    for (let dayOffset = 0; dayOffset < logDays; dayOffset++) {
       const day = addDays(today, -dayOffset);
-      const feeds = randInt(4, 7);
+      const feeds = randInt(6, 8);
       for (let i = 0; i < feeds; i++) {
-        const method = pick(methods);
+        const method: FeedMethod =
+          Math.random() < 0.7 ? primary : pick(methods);
         const feed = {
           method,
           side: method === 'breast' ? pick(sides) : undefined,
-          durationMinutes: method === 'breast' ? randInt(8, 28) : randInt(5, 18),
-          amountMl: method === 'breast' ? undefined : randInt(60, 150),
+          durationMinutes:
+            method === 'breast' ? randInt(12, 28) : randInt(8, 20),
+          amountMl:
+            method === 'breast' ? undefined : randInt(70, 150),
         };
-        const t = hm(randInt(5, 22));
+        const hour = 5 + Math.floor((i * 18) / Math.max(feeds, 1));
         events.push({
           id: uid(`feed-${baby.id}-${dayOffset}-${i}`),
           title: feedTitle(feed, 'en'),
           type: 'feed',
           feed,
-          ...stamp(now, baby.id, day, t),
+          ...stamp(now, baby.id, day, hm(hour)),
         });
       }
 
-      const nDiapers = randInt(4, 7);
+      const nDiapers = randInt(6, 9);
       for (let i = 0; i < nDiapers; i++) {
-        const diaper = { kind: pick(diapers) };
+        const kind: DiaperKind =
+          i < 5 ? pick(['wet', 'wet', 'mixed']) : pick(diapers);
+        const diaper = { kind };
         events.push({
           id: uid(`diaper-${baby.id}-${dayOffset}-${i}`),
           title: diaperTitle(diaper, 'en'),
@@ -213,10 +220,10 @@ export function buildDemoBabyEvents(babies: BabyProfile[]): CalendarEvent[] {
         });
       }
 
-      const sleeps = randInt(2, 4);
+      const sleeps = randInt(3, 5);
       for (let i = 0; i < sleeps; i++) {
         const startH = randInt(0, 20);
-        const mins = randInt(35, 140);
+        const mins = randInt(40, 150);
         const start = `${day}T${hm(startH)}:00`;
         const endMs = Date.parse(start) + mins * 60_000;
         const endedAt = Number.isFinite(endMs)
@@ -234,11 +241,11 @@ export function buildDemoBabyEvents(babies: BabyProfile[]): CalendarEvent[] {
         events.push(ev);
       }
 
-      if (Math.random() < 0.7) {
+      if (primary !== 'breast' || Math.random() < 0.55) {
         const pump = {
           side: pick(sides),
-          durationMinutes: randInt(10, 25),
-          amountMl: randInt(40, 160),
+          durationMinutes: randInt(12, 22),
+          amountMl: randInt(60, 140),
         };
         events.push({
           id: uid(`pump-${baby.id}-${dayOffset}`),
@@ -249,8 +256,8 @@ export function buildDemoBabyEvents(babies: BabyProfile[]): CalendarEvent[] {
         });
       }
 
-      if (Math.random() < 0.65) {
-        const tummy = { durationMinutes: randInt(3, 12), ongoing: false };
+      if (Math.random() < 0.55) {
+        const tummy = { durationMinutes: randInt(4, 14), ongoing: false };
         events.push({
           id: uid(`tummy-${baby.id}-${dayOffset}`),
           title: tummyTitle(tummy, 'en'),
@@ -260,7 +267,7 @@ export function buildDemoBabyEvents(babies: BabyProfile[]): CalendarEvent[] {
         });
       }
 
-      if (Math.random() < 0.45) {
+      if (Math.random() < 0.35) {
         const spitup = { amount: pick(spit) };
         events.push({
           id: uid(`spit-${baby.id}-${dayOffset}`),
@@ -273,9 +280,11 @@ export function buildDemoBabyEvents(babies: BabyProfile[]): CalendarEvent[] {
     }
 
     const birthKg = baby.birthWeightKg ?? 3.2;
-    for (let i = 0; i < 3; i++) {
+    const weighIns = Math.min(8, Math.max(4, Math.floor(logDays / 4)));
+    for (let i = 0; i < weighIns; i++) {
       const day = addDays(today, -i * 4);
-      const value = Math.round((birthKg + i * 0.08 + Math.random() * 0.05) * 100) / 100;
+      const value =
+        Math.round((birthKg + i * 0.12 + Math.random() * 0.06) * 100) / 100;
       events.push({
         id: uid(`bweight-${baby.id}-${i}`),
         title: `${value} kg`,
@@ -605,6 +614,7 @@ export function loadDemoData(): {
   saveSettings({
     ...settings,
     babyCareEnabled: true,
+    showBabyMascot: true,
     activeBabyId: babies[0]?.id,
     laborHomeMode: 'auto',
   });

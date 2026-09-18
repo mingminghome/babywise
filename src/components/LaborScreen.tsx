@@ -12,6 +12,7 @@ import {
 } from '../core/labor/engine';
 import { showLocalNotification } from '../core/notifications/local';
 import { shareOrCopyText } from '../core/util/share';
+import { FoldCard } from './FoldCard';
 import type { AppState } from '../hooks/useAppState';
 import type { Contraction, LaborSession } from '../core/types';
 
@@ -345,8 +346,7 @@ export function LaborScreen({ state }: Props) {
       </section>
 
       {session && completed.length > 0 && (
-        <section className="card span-2">
-          <h2 className="section-title">{t('labor.contraction')}</h2>
+        <FoldCard foldId="labor-waves" title={t('labor.contraction')} t={t}>
           <ul className="labor-wave-list">
             {completed.map((c, i, arr) => {
               const dur = contractionDurationSec(c) ?? 0;
@@ -385,11 +385,10 @@ export function LaborScreen({ state }: Props) {
               );
             })}
           </ul>
-        </section>
+        </FoldCard>
       )}
 
-      <section className="card span-2">
-        <h2 className="section-title">{t('labor.history')}</h2>
+      <FoldCard foldId="labor-history" title={t('labor.history')} t={t}>
         {past.length === 0 ? (
           <p className="muted">{t('labor.historyEmpty')}</p>
         ) : (
@@ -406,7 +405,7 @@ export function LaborScreen({ state }: Props) {
             ))}
           </ul>
         )}
-      </section>
+      </FoldCard>
     </div>
   );
 }
