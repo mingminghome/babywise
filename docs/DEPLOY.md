@@ -39,14 +39,14 @@ If a key was ever committed or shared, **rotate it** before opening the repo pub
 
 | Variable / secret | Where |
 |-------------------|--------|
-| `VITE_GTM_ID` | Cloudflare Pages **Build** env (optional GTM/GA; empty = off). Local: `.env` |
-| `VITE_BUY_ME_A_PINT_URL` | Cloudflare Pages **Build** env (optional support link; empty = hide “Buy me a pint”). Local: `.env` |
+| `VITE_GTM_ID` | GitHub Actions **variable** + local `.env` (optional GTM/GA; empty = off) |
+| `VITE_BUY_ME_A_PINT_URL` | GitHub Actions **variable** + local `.env` (optional support link; CI falls back to the BMC profile) |
 | `VITE_BUY_ME_A_PINT_IMG` | Optional custom button image; BMC profile URLs get a default image |
 | `GEMINI_API_KEY` | Cloudflare Pages secret (**required for Ask**) — not a `VITE_*` var |
 | `CLOUDFLARE_API_TOKEN` | **GitHub** Actions secrets (deploy only) |
 | `CLOUDFLARE_ACCOUNT_ID` | **GitHub** Actions secrets (deploy only) |
 
-GTM is **not hardcoded**. Set e.g. `VITE_GTM_ID=GTM-XXXXXXX` so the SPA injects the container at runtime (`src/core/analytics/gtm.ts`).  
+`VITE_*` values are baked into the SPA at **`npm run build`**. This project uses GitHub Actions Direct Upload, so Cloudflare Pages dashboard env is **not** seen by Vite. Set `VITE_GTM_ID` as a GitHub Actions variable (e.g. `GTM-XXXXXXX`), then redeploy. Wire GA4 (`G-…`) inside the GTM container — do not put a `G-` id in `VITE_GTM_ID`.  
 Support link is also build-time only (`VITE_BUY_ME_A_PINT_URL`).
 
 ---
@@ -133,11 +133,11 @@ Build output includes:
 
 ### Client build env (local deploy)
 
-Baked into the SPA at `npm run build` from `.env` / Cloudflare **Build** env:
+Baked into the SPA at `npm run build` from `.env` / GitHub Actions **variables** (not Pages runtime env):
 
 | Variable | Notes |
 |----------|--------|
-| `VITE_GTM_ID` | Optional GTM |
+| `VITE_GTM_ID` | Optional GTM container (`GTM-…`). Empty = no analytics script |
 | `VITE_BUY_ME_A_PINT_URL` | Optional support link; empty hides UI |
 | `VITE_BUY_ME_A_PINT_IMG` | Optional custom button image |
 

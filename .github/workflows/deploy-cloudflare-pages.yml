@@ -3,6 +3,14 @@
 #   CLOUDFLARE_API_TOKEN   — API token with Account → Cloudflare Pages → Edit
 #   CLOUDFLARE_ACCOUNT_ID  — e.g. from `npx wrangler whoami`
 #
+# Optional build vars (repo Settings → Secrets and variables → Actions → Variables):
+#   VITE_GTM_ID             — GTM container (e.g. GTM-XXXXXXX). Empty = no GTM/GA.
+#   VITE_BUY_ME_A_PINT_URL  — show “Buy me a pint” chip
+#   VITE_BUY_ME_A_PINT_IMG  — optional custom button image
+#
+# Vite bakes VITE_* into the SPA at `npm run build`. Cloudflare Pages runtime
+# env is NOT visible to this Direct Upload build — set the GitHub variables.
+#
 # AI provider keys (GEMINI_API_KEY, etc.) are Cloudflare Pages secrets only —
 # never put them in this workflow or in the SPA bundle.
 # Docs: docs/DEPLOY.md, SECURITY.md
@@ -38,7 +46,17 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        env:
+          VITE_GTM_ID: ${{ vars.VITE_GTM_ID }}
+          VITE_BUY_ME_A_PINT_URL: ${{ vars.VITE_BUY_ME_A_PINT_URL || 'https://buymeacoffee.com/mingminghomework' }}
+          VITE_BUY_ME_A_PINT_IMG: ${{ vars.VITE_BUY_ME_A_PINT_IMG }}
+        run: |
+          if [ -n "$VITE_GTM_ID" ]; then
+            echo "GTM: enabled"
+          else
+            echo "GTM: disabled (set GitHub Actions variable VITE_GTM_ID, then rebuild)"
+          fi
+          npm run build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

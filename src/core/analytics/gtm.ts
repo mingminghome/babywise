@@ -1,13 +1,17 @@
 /**
  * Google Tag Manager — container ID from env only (never hardcode).
  *
- * Set at build time:
+ * Set at build time (Vite inlines `VITE_*`):
  *   VITE_GTM_ID=GTM-XXXXXXX
  *
- * Cloudflare Pages: Environment variables → Build → VITE_GTM_ID
+ * Production (this repo deploys via GitHub Actions Direct Upload):
+ *   GitHub → Settings → Secrets and variables → Actions → Variables → VITE_GTM_ID
  * Local: .env or .env.local (gitignored)
  *
- * When unset / empty, GTM is not loaded.
+ * Cloudflare Pages runtime env is not visible to the SPA build.
+ * Wire GA4 (`G-…`) inside the GTM container, not as VITE_GTM_ID.
+ *
+ * When unset / empty / not a GTM- id, GTM is not loaded.
  */
 
 const GTM_ID_RE = /^GTM-[A-Z0-9]+$/i;
@@ -20,6 +24,14 @@ function resolveGtmId(): string | null {
   return raw;
 }
 
+function gtmAlreadyInstalled(id: string): boolean {
+  if (document.documentElement.dataset.gtmId === id) return true;
+  const needle = `googletagmanager.com/gtm.js?id=${encodeURIComponent(id)}`;
+  return Array.from(document.getElementsByTagName('script')).some((el) =>
+    (el.src ?? '').includes(needle),
+  );
+}
+
 /**
  * Install GTM script + noscript iframe when VITE_GTM_ID is configured.
  * Safe to call once at app bootstrap.
@@ -29,7 +41,10 @@ export function installGtm(): string | null {
   if (!id) return null;
   if (typeof document === 'undefined') return null;
 
-  if (document.documentElement.dataset.gtmId === id) return id;
+  if (gtmAlreadyInstalled(id)) {
+    document.documentElement.dataset.gtmId = id;
+    return id;
+  }
   document.documentElement.dataset.gtmId = id;
 
   const w = window as Window & { dataLayer?: unknown[] };
@@ -39,9 +54,8 @@ export function installGtm(): string | null {
   const script = document.createElement('script');
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(id)}`;
-  const first = document.getElementsByTagName('script')[0];
-  if (first?.parentNode) {
-    first.parentNode.insertBefore(script, first);
+  if (document.head.firstChild) {
+    document.head.insertBefore(script, document.head.firstChild);
   } else {
     document.head.appendChild(script);
   }
