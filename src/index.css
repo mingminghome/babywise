@@ -5652,10 +5652,11 @@ p {
   border-color: rgba(232, 170, 178, 0.45);
   color: #ffe8eb;
 }
+/* Icon-only below 370px (aria-label carries the full text); label from 370px up (375 / 390 phones). */
 .buy-pint-chip-text {
   display: none;
 }
-@media (min-width: 380px) {
+@media (min-width: 370px) {
   .buy-pint-chip-text {
     display: inline;
   }
