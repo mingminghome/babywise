@@ -2775,6 +2775,9 @@ p {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  /* Title takes the remaining width and wraps; the copy button keeps its size. */
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .ask-copy-btn {
@@ -2788,6 +2791,9 @@ p {
   border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   background: var(--bg-card);
   color: var(--text-muted);
+  /* Keep 「複製回答」 / “Copy answer” on one line next to a long title. */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .ask-copy-btn:hover {
@@ -2867,6 +2873,7 @@ p {
 }
 
 .ask-result-title {
+  overflow-wrap: anywhere;
   font-family: var(--font-heading);
   font-size: 1.1rem;
   font-weight: 800;
@@ -5652,10 +5659,11 @@ p {
   border-color: rgba(232, 170, 178, 0.45);
   color: #ffe8eb;
 }
+/* Icon-only below 370px (aria-label carries the full text); label from 370px up (375 / 390 phones). */
 .buy-pint-chip-text {
   display: none;
 }
-@media (min-width: 380px) {
+@media (min-width: 370px) {
   .buy-pint-chip-text {
     display: inline;
   }

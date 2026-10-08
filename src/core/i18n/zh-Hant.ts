@@ -15,7 +15,7 @@ export const zhHant = {
   },
   support: {
     buyMeAPint: '請我喝一杯',
-    pintShort: '請杯',
+    pintShort: '請我喝一杯',
     thanks: '若 BabyWise 對你有幫助，歡迎請我喝一杯：',
   },
   home: {
